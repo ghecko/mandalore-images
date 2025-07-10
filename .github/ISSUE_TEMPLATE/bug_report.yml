@@ -1,5 +1,5 @@
 name: 🐞 Bug report [IMAGE]
-description: Report a bug in Exegol IMAGE to help us improve the Exegol environment
+description: Report a bug in Mandalore IMAGE to help us improve the Mandalore environment
 title: "[BUG] <title>"
 labels:
   - bug
@@ -9,10 +9,10 @@ body:
       value: |
         Verification before publication:
         
-        - You are creating a feature request in the Exegol **IMAGE** repository (the exegol environment)! 
-        > If your request concerns the exegol command specific to the Exegol **WRAPPER**, please open your issue on the [Exegol](https://github.com/ThePorgs/Exegol) repository.
+        - You are creating a feature request in the Mandalore **IMAGE** repository (the mandalore environment)! 
+        > If your request concerns the mandalore command specific to the Mandalore **WRAPPER**, please open your issue on the [Mandalore](https://github.com/ghecko/mandalore) repository.
         - Check that there is not already a issue for the **same** problem.
-        - Some problems are already well known and can be found in the **documentation** or on the Exegol **Discord**.
+        - Some problems are already well known and can be found in the **documentation**.
 
   - type: textarea
     attributes:
@@ -28,16 +28,16 @@ body:
       label: Steps To Reproduce
       description: Steps to reproduce the behavior.
       placeholder: |
-        1. Create a container with Exegol image tag '...' in version 'x.y.z' with parameters '...'
+        1. Create a container with Mandalore image tag '...' in version 'x.y.z' with parameters '...'
         2. Run the command `...`
         3. Error message
     validations:
       required: false
   - type: textarea
     attributes:
-      label: Exegol Wrapper Version
+      label: Mandalore Wrapper Version
       description: |
-        Paste output of `exegol version -vvv`.
+        Paste output of `mandalore version -vvv`.
       placeholder: |
         Paste your output here or a screenshot.
       render: Text
@@ -45,9 +45,9 @@ body:
       required: True
   - type: textarea
     attributes:
-      label: Exegol container information
+      label: Mandalore container information
       description: |
-        Paste output of `exegol info -vv <container_name>`.
+        Paste output of `mandalore info -vv <container_name>`.
       placeholder: |
         Paste your output here or a screenshot.
       render: Text
@@ -67,7 +67,7 @@ body:
     attributes:
       label: Additional context
       description: |
-        Add your customization logs `zcat /var/log/exegol/load_setups.log.gz || cat /var/log/exegol/load_setups.log`
+        Add your customization logs `zcat /var/log/mandalore/load_setups.log.gz || cat /var/log/mandalore/load_setups.log`
       placeholder: |
         Paste your logs
       render: Text

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Author: The Exegol Project
+# Author: The Mandalore Project
 
 source common.sh
 
@@ -84,9 +84,9 @@ function install_bettercap() {
     GOBIN=/opt/tools/bettercap/.go/bin go install -v github.com/bettercap/bettercap@latest
     /opt/tools/bettercap/.go/bin/bettercap -eval "caplets.update; ui.update; q"
     sed -i 's/set api.rest.username user/set api.rest.username bettercap/g' /usr/local/share/bettercap/caplets/http-ui.cap
-    sed -i 's/set api.rest.password pass/set api.rest.password exegol4thewin/g' /usr/local/share/bettercap/caplets/http-ui.cap
+    sed -i 's/set api.rest.password pass/set api.rest.password mandalore4thewin/g' /usr/local/share/bettercap/caplets/http-ui.cap
     sed -i 's/set api.rest.username user/set api.rest.username bettercap/g' /usr/local/share/bettercap/caplets/https-ui.cap
-    sed -i 's/set api.rest.password pass/set api.rest.password exegol4thewin/g' /usr/local/share/bettercap/caplets/https-ui.cap
+    sed -i 's/set api.rest.password pass/set api.rest.password mandalore4thewin/g' /usr/local/share/bettercap/caplets/https-ui.cap
     add-aliases bettercap
     add-history bettercap
     add-test-command "bettercap --version"

@@ -20,7 +20,7 @@ from glob import glob
 from cryptography.hazmat.primitives.serialization import pkcs7
 from cryptography.x509.oid import NameOID
 
-PATHNAME = "/root/.mozilla/firefox/**.Exegol/"
+PATHNAME = "/root/.mozilla/firefox/**.Mandalore/"
 
 # Define addons urls
 urls = [
@@ -73,11 +73,11 @@ def get_addon_id(addon_path):
 
 def install_addons(addon_name, addon_id, addon_path):
     logger.info(f"Installing addon {addon_name} with id {addon_id}")
-    # Get the path of the Exegol profile
+    # Get the path of the Mandalore profile
     try:
         dest = glob("%s" % PATHNAME)[0]
     except:
-        logger.error("Firefox profile Exegol does not exist")
+        logger.error("Firefox profile Mandalore does not exist")
         raise
     # Create the extensions folder
     Path(dest + "/extensions").mkdir(parents=True, exist_ok=True)
@@ -143,14 +143,14 @@ if __name__ == "__main__":
     # Initialize variables
     install_ko = []
 
-    # Create firefox profile Exegol
+    # Create firefox profile Mandalore
     logger.info("Creating Firefox profile")
     try:
-        subprocess.run(["firefox", "-CreateProfile", "Exegol", "-headless"], stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+        subprocess.run(["firefox", "-CreateProfile", "Mandalore", "-headless"], stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
         assert(Path(glob("%s" % PATHNAME)[0]).is_dir())
-        logger.success("Firefox profile Exegol created\n")
+        logger.success("Firefox profile Mandalore created\n")
     except:
-        logger.error("Could not create Firefox profile Exegol")
+        logger.error("Could not create Firefox profile Mandalore")
         raise
 
     # Define a list containing all addons names and ids
@@ -180,7 +180,7 @@ if __name__ == "__main__":
     # Run firefox to initialise profile
     logger.info("Initialising Firefox profile")
     try:
-        p_firefox = subprocess.Popen(["firefox", "-P", "Exegol", "-headless"], stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+        p_firefox = subprocess.Popen(["firefox", "-P", "Mandalore", "-headless"], stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
         # Wait for firefox to be initialised
         while not b'sessionstore-backups' in subprocess.check_output(["ls", glob("%s" % PATHNAME)[0]]):
             sleep(0.5)

@@ -6,5 +6,5 @@ Icon=/usr/share/icons/Papirus/64x64/apps/remmina.svg
 Terminal=false
 Type=Application
 StartupNotify=true
-Categories=Exegol;Misc;
+Categories=Mandalore;Misc;
 MimeType=text/plain;

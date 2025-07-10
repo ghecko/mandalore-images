@@ -1,2 +1,2 @@
-goshs -b "goshs":"exegol4thewin" --ssl --self-signed -p 8001 -d /workspace
-goshs -b "goshs":"exegol4thewin" --ssl --self-signed --read-only -p 8002 -d /opt/resources
+goshs -b "goshs":"mandalore4thewin" --ssl --self-signed -p 8001 -d /workspace
+goshs -b "goshs":"mandalore4thewin" --ssl --self-signed --read-only -p 8002 -d /opt/resources

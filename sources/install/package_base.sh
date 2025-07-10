@@ -1,5 +1,5 @@
 #!/bin/bash
-# Author: The Exegol Project
+# Author: The Mandalore Project
 
 source common.sh
 
@@ -10,9 +10,9 @@ function update() {
 }
 
 function install_exegol-history() {
-    colorecho "Installing Exegol-history"
-    git -C /opt/tools/ clone --depth 1 https://github.com/ThePorgs/Exegol-history
-    cd /opt/tools/Exegol-history || exit
+    colorecho "Installing exegol-history"
+    git -C /opt/tools/ clone --depth 1 https://github.com/ThePorgs/exegol-history
+    cd /opt/tools/exegol-history || exit
     python3 -m venv --system-site-packages ./venv
     source ./venv/bin/activate
     pip3 install -r requirements.txt
@@ -20,7 +20,7 @@ function install_exegol-history() {
     add-aliases exegol-history
     add-history exegol-history
     add-test-command "exh -h"
-    add-to-list "exegol-history,https://github.com/ThePorgs/Exegol-history,Credentials management for Exegol"
+    add-to-list "exegol-history,https://github.com/ThePorgs/Exegol-history,Credentials management for Mandalore"
 }
 
 function install_rust_cargo() {
@@ -35,10 +35,10 @@ function install_rust_cargo() {
 
 function filesystem() {
     colorecho "Preparing filesystem"
-    mkdir -p /opt/tools/bin/ /data/ /var/log/exegol /.exegol/ /opt/rules/ /opt/lists
-    touch /.exegol/unit_tests_all_commands.txt
-    touch /.exegol/installed_tools.csv
-    echo "Tool,Link,Description" >> /.exegol/installed_tools.csv
+    mkdir -p /opt/tools/bin/ /data/ /var/log/mandalore /.mandalore/ /opt/rules/ /opt/lists
+    touch /.mandalore/unit_tests_all_commands.txt
+    touch /.mandalore/installed_tools.csv
+    echo "Tool,Link,Description" >> /.mandalore/installed_tools.csv
 }
 
 function install_go() {
@@ -82,23 +82,23 @@ function install_go() {
     add-test-command "go version"
 }
 
-function deploy_exegol() {
-    colorecho "Installing Exegol things"
-    # Moving exegol files to /
-    # It's copied and not moved for caching and updating purposes (reusing exegol_base to create exegol_base)
+function deploy_mandalore() {
+    colorecho "Installing Mandalore things"
+    # Moving mandalore files to /
+    # It's copied and not moved for caching and updating purposes (reusing mandalore_base to create mandalore_base)
     # mkdir -p /opt/packages
     # chown -Rv _apt:root /opt/packages
-    rm -rf /.exegol || true
-    cp -r /root/sources/assets/exegol /.exegol
+    rm -rf /.mandalore || true
+    cp -r /root/sources/assets/mandalore /.mandalore
     cp -v /root/sources/assets/shells/history.d/_init ~/.zsh_history
-    cp -v /root/sources/assets/shells/aliases.d/_init /opt/.exegol_aliases
+    cp -v /root/sources/assets/shells/aliases.d/_init /opt/.mandalore_aliases
     # Moving supported custom configurations in /opt
-    mv /.exegol/skel/supported_setups.md /opt/
-    mkdir -p /var/log/exegol
+    mv /.mandalore/skel/supported_setups.md /opt/
+    mkdir -p /var/log/mandalore
     # Setup perms
-    chown -R root:root /.exegol
-    chmod 500 /.exegol/*.sh
-    find /.exegol/skel/ -type f -exec chmod 660 {} \;
+    chown -R root:root /.mandalore
+    chmod 500 /.mandalore/*.sh
+    find /.mandalore/skel/ -type f -exec chmod 660 {} \;
 }
 
 function install_locales() {
@@ -157,7 +157,7 @@ function install_firefox() {
     pip3 install -r /opt/tools/firefox/requirements.txt
     python3 /opt/tools/firefox/generate_policy.py
     add-history firefox
-    add-test-command "cat /usr/lib/firefox-esr/distribution/policies.json|grep 'Exegol'"
+    add-test-command "cat /usr/lib/firefox-esr/distribution/policies.json|grep 'Mandalore'"
     add-test-command "firefox --version"
     add-to-list "firefox,https://www.mozilla.org,A web browser"
 }
@@ -454,7 +454,7 @@ function package_base() {
     # splitting curl | bash to avoid having additional logs put in curl output being executed because of catch_and_retry
     curl -sL https://git.io/vokNn -o /tmp/apt-fast-install.sh
     bash /tmp/apt-fast-install.sh
-    deploy_exegol
+    deploy_mandalore
     fapt software-properties-common
     add_debian_repository_components
     cp -v /root/sources/assets/apt/sources.list.d/* /etc/apt/sources.list.d/
@@ -474,7 +474,7 @@ function package_base() {
 
     filesystem
     install_locales
-    cp -v /root/sources/assets/shells/exegol_shells_rc /opt/.exegol_shells_rc
+    cp -v /root/sources/assets/shells/mandalore_shells_rc /opt/.mandalore_shells_rc
     cp -v /root/sources/assets/shells/bashrc ~/.bashrc
 
     install_asdf
@@ -577,7 +577,7 @@ function package_base() {
     # Global python dependencies
     pip3 install -r /root/sources/assets/python/requirements.txt
 
-    install_exegol-history
+    install_mandalore-history
 
     post_install
     end_time=$(date +%s)

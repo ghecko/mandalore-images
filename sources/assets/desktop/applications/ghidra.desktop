@@ -6,5 +6,5 @@ Icon=/opt/tools/ghidra/docs/images/GHIDRA_1.png
 Terminal=false
 Type=Application
 StartupNotify=true
-Categories=Exegol;Reverse;
+Categories=Mandalore;Reverse;
 MimeType=text/plain;

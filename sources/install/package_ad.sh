@@ -1,5 +1,5 @@
 #!/bin/bash
-# Author: The Exegol Project
+# Author: The Mandalore Project
 
 source common.sh
 
@@ -181,14 +181,14 @@ function install_bloodhound-ce() {
 
     # avoid permissions issues when impersonating postgres
     cd /tmp || exit
-    sudo -u postgres psql -c "CREATE USER bloodhound WITH PASSWORD 'exegol4thewin';"
+    sudo -u postgres psql -c "CREATE USER bloodhound WITH PASSWORD 'mandalore4thewin';"
     sudo -u postgres psql -c "CREATE DATABASE bloodhound;"
     sudo -u postgres psql -c "ALTER DATABASE bloodhound OWNER TO bloodhound;"
     service postgresql stop
 
     # Build BloodHound-CE
     local latestRelease
-    # Had to output into a tempfile as the Exegol's wrapper for curl breaks stdout
+    # Had to output into a tempfile as the Mandalore's wrapper for curl breaks stdout
     curl --location --silent "https://api.github.com/repos/SpecterOps/BloodHound/releases" -o "${curl_tempfile}"
     latestRelease=$(jq --raw-output 'first(.[] | select(.tag_name | contains("-rc") | not) | .tag_name)' "${curl_tempfile}")
     git -C "${bloodhoundce_path}" clone --depth 1 --branch "${latestRelease}" "https://github.com/SpecterOps/BloodHound.git" src
@@ -262,7 +262,7 @@ function install_bloodhound-ce() {
 
     # the following test command probably needs to be changed. No idea how we can make sure bloodhound-ce works as intended.
     add-test-command "${bloodhoundce_path}/bloodhound -version"
-    add-test-command "service postgresql start && sleep 5 && PGPASSWORD=exegol4thewin psql -U bloodhound -d bloodhound -h localhost -c '\l' && service postgresql stop"
+    add-test-command "service postgresql start && sleep 5 && PGPASSWORD=mandalore4thewin psql -U bloodhound -d bloodhound -h localhost -c '\l' && service postgresql stop"
     add-to-list "BloodHound-CE,https://github.com/SpecterOps/BloodHound,Active Directory security tool for reconnaissance and attacking AD environments (Community Edition)"
 }
 
@@ -497,7 +497,7 @@ function install_pypykatz() {
     # pipx install --system-site-packages pypykatz
     add-history pypykatz
     add-test-command "pypykatz version"
-    add-test-command "pypykatz crypto nt 'exegol4thewin'"
+    add-test-command "pypykatz crypto nt 'mandalore4thewin'"
     add-to-list "pypykatz,https://github.com/skelsec/pypykatz,a Python library for mimikatz-like functionality"
 }
 
@@ -1201,9 +1201,9 @@ function install_neo4j() {
     echo 'deb https://debian.neo4j.com stable 4.4' | tee /etc/apt/sources.list.d/neo4j.list
     apt-get update
     fapt gnupg libgtk2.0-bin libcanberra-gtk-module libx11-xcb1 libva-glx2 libgl1-mesa-glx libgl1-mesa-dri libgconf-2-4 libasound2 libxss1 neo4j
-    # TODO: when temporary fix is not needed anymore add --> neo4j-admin dbms set-initial-password exegol4thewin
+    # TODO: when temporary fix is not needed anymore add --> neo4j-admin dbms set-initial-password mandalore4thewin
     # TODO: when temporary fix is not needed anymore remove following line
-    neo4j-admin set-initial-password exegol4thewin
+    neo4j-admin set-initial-password mandalore4thewin
     mkdir -p /usr/share/neo4j/logs/
     touch /usr/share/neo4j/logs/neo4j.log
     add-aliases neo4j

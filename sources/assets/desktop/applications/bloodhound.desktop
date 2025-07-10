@@ -6,5 +6,5 @@ Icon=/opt/tools/BloodHound4/docs/images/bloodhound-logo.png
 Terminal=false
 Type=Application
 StartupNotify=true
-Categories=Exegol;AD;
+Categories=Mandalore;AD;
 MimeType=text/plain;

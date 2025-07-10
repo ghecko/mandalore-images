@@ -1,5 +1,5 @@
 #!/bin/bash
-# Author: The Exegol Project
+# Author: The Mandalore Project
 
 # Functions and commands that will be retried multiple times to counter random network issues when building
 CATCH_AND_RETRY_COMMANDS=("curl" "wget" "apt-fast" "git" "go" "apt-get" "nvm" "npm" "pip" "pipx" "pip2" "pip3" "cargo" "gem")
@@ -12,39 +12,39 @@ export NOCOLOR='\033[0m'
 ### Echo functions
 
 function colorecho () {
-    echo -e "${BLUE}[EXEGOL] $*${NOCOLOR}"
+    echo -e "${BLUE}[MANDALORE] $*${NOCOLOR}"
 }
 
 function criticalecho () {
-    echo -e "${RED}[EXEGOL ERROR] $*${NOCOLOR}" 2>&1
+    echo -e "${RED}[MANDALORE ERROR] $*${NOCOLOR}" 2>&1
     exit 1
 }
 
 function criticalecho-noexit () {
-    echo -e "${RED}[EXEGOL ERROR] $*${NOCOLOR}" 2>&1
+    echo -e "${RED}[MANDALORE ERROR] $*${NOCOLOR}" 2>&1
 }
 
 ### Support functions
 
 function add-to-list() {
-  echo "$1" >> "/.exegol/installed_tools.csv"
+  echo "$1" >> "/.mandalore/installed_tools.csv"
 }
 
 function add-aliases() {
     colorecho "Adding aliases for: $*"
     # Removing add empty lines and the last trailing newline if any, and adding a trailing newline.
-    grep -vE "^\s*$" "/root/sources/assets/shells/aliases.d/$*" | tee -a /opt/.exegol_aliases
+    grep -vE "^\s*$" "/root/sources/assets/shells/aliases.d/$*" | tee -a /opt/.mandalore_aliases
 }
 
 function add-history() {
     colorecho "Adding history commands for: $*"
     # Removing add empty lines and the last trailing newline if any, and adding a trailing newline.
-    grep -vE "^\s*$" "/root/sources/assets/shells/history.d/$*" | tee -a /opt/.exegol_history
+    grep -vE "^\s*$" "/root/sources/assets/shells/history.d/$*" | tee -a /opt/.mandalore_history
 }
 
 function add-test-command() {
     colorecho "Adding build pipeline test command: $*"
-    echo "$*" >> "/.exegol/unit_tests_all_commands.txt"
+    echo "$*" >> "/.mandalore/unit_tests_all_commands.txt"
 }
 
 function fapt() {
@@ -130,7 +130,7 @@ function catch_and_retry() {
     #  for instance, with an "eval", "wget" would point to the "wget" function defined with define_retry_function()
     # TODO : there is a limitation to this approach. It escapes metachars as well (like &&, ;, ||,)
     #  it means commands like "cmd1 && cmd2" won't work and will be interpreted as "cmd1 \&\& cmd2"
-    echo "[EXEGOL DEBUG] sh -c \"$escaped_command\""
+    echo "[MANDALORE DEBUG] sh -c \"$escaped_command\""
     # If command exits successfully, no need for more retries
     sh -c "$escaped_command" && return 0
     # Calculate the exponential backoff time
@@ -190,12 +190,12 @@ function post_build() {
     rm -rfv /root/sources
     add-test-command "if [[ $(sudo ss -lnpt | tail -n +2 | wc -l) -ne 0 ]]; then ss -lnpt && false;fi"
     colorecho "Sorting tools list"
-    (head -n 1 /.exegol/installed_tools.csv && tail -n +2 /.exegol/installed_tools.csv | sort -f ) | tee /tmp/installed_tools.csv.sorted
-    mv /tmp/installed_tools.csv.sorted /.exegol/installed_tools.csv
+    (head -n 1 /.mandalore/installed_tools.csv && tail -n +2 /.mandalore/installed_tools.csv | sort -f ) | tee /tmp/installed_tools.csv.sorted
+    mv /tmp/installed_tools.csv.sorted /.mandalore/installed_tools.csv
     colorecho "Adding end-of-preset in zsh_history"
-    echo "# -=-=-=-=-=-=-=- YOUR COMMANDS BELOW -=-=-=-=-=-=-=- #" >> /opt/.exegol_history
-    cp /opt/.exegol_history ~/.zsh_history
-    cp /opt/.exegol_history ~/.bash_history
+    echo "# -=-=-=-=-=-=-=- YOUR COMMANDS BELOW -=-=-=-=-=-=-=- #" >> /opt/.mandalore_history
+    cp /opt/.mandalore_history ~/.zsh_history
+    cp /opt/.mandalore_history ~/.bash_history
     colorecho "Removing desktop icons"
     if [ -d "/root/Desktop" ]; then rm -r /root/Desktop; fi
 }
@@ -211,7 +211,7 @@ function check_temp_fix_expiry() {
     local expiry_date="$1"
     
     # Apply the fix if it's a local build regardless of expiry
-    if [[ "$EXEGOL_BUILD_TYPE" == "local" ]]; then
+    if [[ "$MANDALORE_BUILD_TYPE" == "local" ]]; then
         return 0
     fi
     

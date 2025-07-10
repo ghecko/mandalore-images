@@ -1,5 +1,5 @@
 #!/bin/bash
-# Author: The Exegol Project
+# Author: The Mandalore Project
 
 source common.sh
 # sourcing package_ad.sh for the install_powershell() function
@@ -23,8 +23,8 @@ function install_metasploit() {
     cd /opt/tools/metasploit-framework || exit  # rvm gemset ruby-3.1.5@metasploit-framework should be auto setup here
 
     # Fix msfupdate git config requirements
-    git config user.name "exegol"
-    git config user.email "exegol@localhost"
+    git config user.name "mandalore"
+    git config user.email "mandalore@localhost"
 
     rvm use 3.1.5@metasploit-framework --create
 
@@ -117,7 +117,7 @@ function install_empire() {
     deactivate
     # TODO : use mysql instead, need to configure that
     sed -i 's/use: mysql/use: sqlite/g' empire/server/config.yaml
-    sed -i 's/password: password123/password: exegol4thewin/g' empire/server/config.yaml
+    sed -i 's/password: password123/password: mandalore4thewin/g' empire/server/config.yaml
     cp -r -v ./empire/server/data/Invoke-Obfuscation /opt/tools/powershell/7/Modules/
     add-aliases empire
     add-history empire

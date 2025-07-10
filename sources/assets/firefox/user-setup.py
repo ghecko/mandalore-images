@@ -14,7 +14,7 @@ import re
 import subprocess
 import argparse
 
-PATHNAME = "/root/.mozilla/firefox/**.Exegol/"
+PATHNAME = "/root/.mozilla/firefox/**.Mandalore/"
 re_links = r'^https://addons\.mozilla\.org/[a-z]{2}(\-[A-Z]{2})?/firefox/addon/[^/]+/?$'
 
 def parse_args():
@@ -84,7 +84,7 @@ if __name__ == "__main__":
         # Run firefox to initialise profile
         logger.info("Initialising Firefox profile")
         try:
-            p_firefox = subprocess.Popen(["firefox", "-P", "Exegol", "-headless"], stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+            p_firefox = subprocess.Popen(["firefox", "-P", "Mandalore", "-headless"], stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
             # Wait for firefox to be initialised
             while not addon_list[0][0].encode() in subprocess.check_output(["cat", glob("%s" % PATHNAME)[0] + "/extensions.json"]):
                 sleep(0.5)

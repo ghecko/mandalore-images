@@ -1,9 +1,9 @@
-[exegol_provider]
+[mandalore_provider]
 default = default_sect
 legacy = legacy_sect
 
 [openssl_init]
-providers = exegol_provider
+providers = mandalore_provider
 
 [default_sect]
 activate = 1

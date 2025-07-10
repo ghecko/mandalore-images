@@ -1,2 +1,2 @@
-AD-miner -c -cf My_Report -u neo4j -p exegol4thewin
-adminer -c -cf My_Report -u neo4j -p exegol4thewin
+AD-miner -c -cf My_Report -u neo4j -p mandalore4thewin
+adminer -c -cf My_Report -u neo4j -p mandalore4thewin

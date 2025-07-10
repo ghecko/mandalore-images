@@ -6,5 +6,5 @@ Icon=/usr/share/icons/Papirus/16x16/apps/kali-burpsuite.svg
 Terminal=false
 Type=Application
 StartupNotify=true
-Categories=Exegol;Web;
+Categories=Mandalore;Web;
 MimeType=text/plain;

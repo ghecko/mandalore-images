@@ -5,11 +5,11 @@
 
     "ManagedBookmarks": [
       {
-        "toplevel_name": "Exegol Bookmarks"
+        "toplevel_name": "Mandalore Bookmarks"
       },
       {
-        "url": "https://exegol.readthedocs.io/en/latest/",
-        "name": "Exegol Doc"
+        "url": "https://mandalore.readthedocs.io/en/latest/",
+        "name": "Mandalore Doc"
       },
       {
         "name": "References / Guides",

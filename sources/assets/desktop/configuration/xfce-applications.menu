@@ -18,7 +18,7 @@
  <Menuname>Accessories</Menuname>
  <Menuname>Settings</Menuname>
  <Menuname>Network</Menuname>
- <Menuname>Exegol</Menuname>
+ <Menuname>Mandalore</Menuname>
  <Separator/>
         <Filename>xfce4-session-logout.desktop</Filename>
     </Layout>
@@ -88,10 +88,10 @@
 
 
     <Menu>
-        <Name>Exegol</Name>
-        <Directory>exegol.directory</Directory>
+        <Name>Mandalore</Name>
+        <Directory>mandalore.directory</Directory>
         <Include>
-            <Category>Exegol</Category>
+            <Category>Mandalore</Category>
         </Include>
     </Menu>
 

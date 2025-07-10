@@ -6,5 +6,5 @@ Icon=/usr/share/icons/Papirus/64x64/apps/kali-jd-gui.svg
 Terminal=false
 Type=Application
 StartupNotify=true
-Categories=Exegol;Reverse;
+Categories=Mandalore;Reverse;
 MimeType=text/plain;

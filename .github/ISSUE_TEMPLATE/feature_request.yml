@@ -1,5 +1,5 @@
 name: Feature request [IMAGE]
-description: Suggest an idea for the Exegol IMAGE environment
+description: Suggest an idea for the Mandalore IMAGE environment
 labels:
   - enhancement
 body:
@@ -8,9 +8,9 @@ body:
       value: |
         Verification before publication:
 
-        - You are creating a feature request in the Exegol **IMAGE** repository (the exegol environment)! 
-        > If your request concerns the exegol command specific to the Exegol **WRAPPER**, please open your issue on the [Exegol](https://github.com/ThePorgs/Exegol) repository
-        - Check that there is not already your feature request on the Exegol **roadmap** (can be consulted in the **documentation** or on the Exegol **Discord**)
+        - You are creating a feature request in the Mandalore **IMAGE** repository (the mandalore environment)! 
+        > If your request concerns the mandalore command specific to the Mandalore **WRAPPER**, please open your issue on the [Mandalore](https://github.com/ghecko/mandalore) repository
+        - Check that there is not already your feature request on the Mandalore **roadmap** (can be consulted in the **documentation**)
 
 
   - type: textarea

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Author: The Exegol Project
+# Author: The Mandalore Project
 
 source common.sh
 
@@ -57,18 +57,18 @@ function install_xfce() {
 
     # Wallpapers
     # TODO : enable custom config in my-resources
-    cp -rv /root/sources/assets/desktop/wallpapers /usr/share/backgrounds/exegol
+    cp -rv /root/sources/assets/desktop/wallpapers /usr/share/backgrounds/mandalore
 
     # Favicon
-    cp -rv /root/sources/assets/desktop/exegol_logo.png /usr/share/novnc/app/images/icons/
+    cp -rv /root/sources/assets/desktop/mandalore_logo.png /usr/share/novnc/app/images/icons/
     sed -i "/novnc-.*.png/d" /usr/share/novnc/vnc.html
-    sed -i "s#novnc-icon.svg#exegol_logo.png#" /usr/share/novnc/vnc.html
+    sed -i "s#novnc-icon.svg#mandalore_logo.png#" /usr/share/novnc/vnc.html
     sed -i "s#svg+xml#png#" /usr/share/novnc/vnc.html
-    echo '<link rel="icon" sizes="any" type="image/png" href="app/images/icons/exegol_logo.png">' >> /usr/share/novnc/vnc.html
+    echo '<link rel="icon" sizes="any" type="image/png" href="app/images/icons/mandalore_logo.png">' >> /usr/share/novnc/vnc.html
 
     # NoVNC title bar
-    sed -i "s#<title>noVNC</title>#<title>Exegol</title>#" /usr/share/novnc/vnc.html
-    sed -i 's#document.title = e.detail.name + " - noVNC";#document.title = "Exegol (" + e.detail.name.split(":")[0].replace("exegol-", "") + ")";#' /usr/share/novnc/app/ui.js
+    sed -i "s#<title>noVNC</title>#<title>Mandalore</title>#" /usr/share/novnc/vnc.html
+    sed -i 's#document.title = e.detail.name + " - noVNC";#document.title = "Mandalore (" + e.detail.name.split(":")[0].replace("mandalore-", "") + ")";#' /usr/share/novnc/app/ui.js
 
     # NoVNC index redirection
     echo '<html><head><meta http-equiv="refresh" content="0; URL=/vnc.html?resize=remote&path=websockify&autoconnect=true" /></head></html>' > /usr/share/novnc/index.html
@@ -94,7 +94,7 @@ function install_xfce() {
     # TODO : enable custom config in my-resources
     mkdir /root/.config/menus/
     cp /root/sources/assets/desktop/configuration/xfce-applications.menu ~/.config/menus/xfce-applications.menu
-    cp /root/sources/assets/desktop/configuration/exegol.directory /usr/share/desktop-directories/exegol.directory
+    cp /root/sources/assets/desktop/configuration/mandalore.directory /usr/share/desktop-directories/mandalore.directory
     cp /root/sources/assets/desktop/applications/* /usr/share/applications/
 
     # Stopping VNC server used for config

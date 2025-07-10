@@ -6,5 +6,5 @@ Icon=/usr/share/pixmaps/maltego.png
 Terminal=false
 Type=Application
 StartupNotify=true
-Categories=Exegol;OSINT;
+Categories=Mandalore;OSINT;
 MimeType=text/plain;
