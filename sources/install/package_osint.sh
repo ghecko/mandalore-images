@@ -119,7 +119,8 @@ function install_simplyemail() {
 function install_theharvester() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing theHarvester"
-    pipx install --system-site-packages git+https://github.com/laramies/theHarvester
+    # theHarvester new release require python>=3.12
+    pipx install --python /usr/bin/python3.13 --system-site-packages git+https://github.com/laramies/theHarvester@4.8.0
     # The tool needs access to the proxies.yaml file in the folder.
     add-history theharvester
     add-test-command "theHarvester --help"

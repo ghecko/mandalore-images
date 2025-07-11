@@ -4,9 +4,9 @@ FROM debian:12-slim
 
 # ARGs need to be placed after the FROM instruction. As per https://docs.docker.com/engine/reference/builder/#arg. As per https://docs.docker.com/engine/reference/builder/#arg.
 # If they are placed before, they will be overwritten somehow, and the LABELs below will be filled with empty ARGs
-ARG TAG="local"
-ARG VERSION="local"
-ARG BUILD_DATE="n/a"
+ARG TAG="full"
+ARG VERSION="1.0.0"
+ARG BUILD_DATE="2025-07-10"
 
 LABEL org.mandalore.tag="${TAG}"
 LABEL org.mandalore.version="${VERSION}"

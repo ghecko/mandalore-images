@@ -50,7 +50,7 @@ function install_go() {
     #asdf install golang latest
     #asdf set --home golang latest
     # With golang 1.23 many package build are broken, temp fix to use 1.22.2 as golang latest
-    local temp_fix_limit="2025-07-01"
+    local temp_fix_limit="2025-12-01"
     if check_temp_fix_expiry "$temp_fix_limit"; then
       # 1.23 needed by BloodHound-CE, and sensepost/ruler
       asdf install golang 1.23.0
@@ -577,7 +577,7 @@ function package_base() {
     # Global python dependencies
     pip3 install -r /root/sources/assets/python/requirements.txt
 
-    install_mandalore-history
+    install_exegol-history
 
     post_install
     end_time=$(date +%s)
