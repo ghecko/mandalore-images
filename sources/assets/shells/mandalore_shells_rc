@@ -29,8 +29,8 @@ else
   cp /.mandalore/skel/zsh/aliases /opt/my-resources/setup/zsh/aliases
 fi
 
-# sourcing mandalore-history
-source /opt/tools/Mandalore-history/profile.sh
+# sourcing exegol-history
+source /opt/tools/exegol-history/profile.sh
 source $HOME/.cargo/env
 
 # In case pipx ensurepath didn't work, and positioning pipx in priority
