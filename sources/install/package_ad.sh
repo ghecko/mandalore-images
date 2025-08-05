@@ -186,11 +186,19 @@ function install_bloodhound-ce() {
     sudo -u postgres psql -c "ALTER DATABASE bloodhound OWNER TO bloodhound;"
     service postgresql stop
 
+    # Version 8.0.x build broken since go requirements >= 1.24
+    # Custom install because it requires go >= 1.24 (default running go is 1.22.2)
+    #asdf set golang 1.24.5
+    local temp_fix_limit="2025-10-01"
+    if check_temp_fix_expiry "$temp_fix_limit"; then
+        local latestRelease
+        latestRelease="v7.6.2"
+    fi
     # Build BloodHound-CE
-    local latestRelease
+    ## local latestRelease
     # Had to output into a tempfile as the Mandalore's wrapper for curl breaks stdout
-    curl --location --silent "https://api.github.com/repos/SpecterOps/BloodHound/releases" -o "${curl_tempfile}"
-    latestRelease=$(jq --raw-output 'first(.[] | select(.tag_name | contains("-rc") | not) | .tag_name)' "${curl_tempfile}")
+    ## curl --location --silent "https://api.github.com/repos/SpecterOps/BloodHound/releases" -o "${curl_tempfile}"
+    ## latestRelease=$(jq --raw-output 'first(.[] | select(.tag_name | contains("-rc") | not) | .tag_name)' "${curl_tempfile}")
     git -C "${bloodhoundce_path}" clone --depth 1 --branch "${latestRelease}" "https://github.com/SpecterOps/BloodHound.git" src
     cd "${bloodhoundce_path}/src/" || exit
     catch_and_retry VERSION=v999.999.999 CHECKOUT_HASH="" python3 ./packages/python/beagle/main.py build --verbose --ci
@@ -353,7 +361,7 @@ function install_ruler() {
     colorecho "Downloading ruler and form templates"
     mkdir -p /opt/tools/ruler || exit
     cd /opt/tools/ruler || exit
-    asdf set golang 1.23.0
+    asdf set golang 1.23.11
     mkdir -p .go/bin
     GOBIN=/opt/tools/ruler/.go/bin go install -v github.com/sensepost/ruler@latest
     asdf reshim golang

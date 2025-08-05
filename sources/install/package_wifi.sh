@@ -79,7 +79,7 @@ function install_bettercap() {
     mkdir -p /opt/tools/bettercap || exit
     cd /opt/tools/bettercap || exit
     # Custom install because it requires go >= 1.23.0 (default running go is 1.22.2)
-    asdf set golang 1.23.0
+    asdf set golang 1.23.11
     mkdir -p .go/bin
     GOBIN=/opt/tools/bettercap/.go/bin go install -v github.com/bettercap/bettercap@latest
     /opt/tools/bettercap/.go/bin/bettercap -eval "caplets.update; ui.update; q"

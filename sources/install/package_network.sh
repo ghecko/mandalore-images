@@ -232,11 +232,13 @@ function install_shuffledns() {
 
 function install_tailscale() {
     colorecho "Installing tailscale"
-    wget -O /tmp/tailscale.gpg.armored https://pkgs.tailscale.com/stable/ubuntu/focal.gpg
-    # doing wget, gpg, chmod, to avoid the warning of apt-key being deprecated
-    gpg --dearmor --output /etc/apt/trusted.gpg.d/tailscale.gpg /tmp/tailscale.gpg.armored
-    chmod 644 /etc/apt/trusted.gpg.d/tailscale.gpg
-    wget -O /etc/apt/sources.list.d/tailscale.list https://pkgs.tailscale.com/stable/ubuntu/focal.list
+
+    # Import the GPG key to the correct location
+    wget -qO /usr/share/keyrings/tailscale-archive-keyring.gpg https://pkgs.tailscale.com/stable/debian/bookworm.noarmor.gpg
+
+    # Add the source list with correct signed-by attribute    
+    wget -qO /etc/apt/sources.list.d/tailscale.list https://pkgs.tailscale.com/stable/debian/bookworm.tailscale-keyring.list
+
     apt-get update
     fapt tailscale
     add-aliases tailscale
