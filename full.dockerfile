@@ -1,6 +1,10 @@
 # Author: The Mandalore Project
 FROM lksec/mandalore-base
 
+ARG TAG
+ARG VERSION
+ARG BUILD_DATE
+
 LABEL org.mandalore.tag="${TAG}"
 LABEL org.mandalore.version="${VERSION}"
 LABEL org.mandalore.build_date="${BUILD_DATE}"

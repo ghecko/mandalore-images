@@ -1,7 +1,6 @@
 # Global vars
 VERSION ?= 1.0.0
 BUILD_DATE ?= $(shell date -u +%Y-%m-%d)
-TAG ?= latest
 
 # List of image variants to build
 VARIANTS := full web light

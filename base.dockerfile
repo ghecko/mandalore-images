@@ -1,9 +1,9 @@
 # Author: The Mandalore Project
 FROM debian:12-slim
 
-ARG TAG="base"
-ARG VERSION="1.0.0"
-ARG BUILD_DATE="2025-08-05"
+ARG TAG
+ARG VERSION
+ARG BUILD_DATE
 
 LABEL org.mandalore.tag="${TAG}"
 LABEL org.mandalore.version="${VERSION}"
