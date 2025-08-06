@@ -27,7 +27,6 @@ RUN ./entrypoint.sh package_iot
 RUN ./entrypoint.sh package_rfid
 RUN ./entrypoint.sh package_voip
 RUN ./entrypoint.sh package_sdr
-RUN ./entrypoint.sh package_network
 RUN ./entrypoint.sh package_wifi
 RUN ./entrypoint.sh package_forensic
 RUN ./entrypoint.sh package_cloud

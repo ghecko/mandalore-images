@@ -24,7 +24,6 @@ RUN ./entrypoint.sh package_wordlists
 RUN ./entrypoint.sh package_cracking
 RUN ./entrypoint.sh package_web
 RUN ./entrypoint.sh package_ad
-RUN ./entrypoint.sh package_network
 RUN ./entrypoint.sh post_build
 
 WORKDIR /workspace
