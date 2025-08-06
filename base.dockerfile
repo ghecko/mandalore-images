@@ -1,4 +1,4 @@
-# base.dockerfile
+# Author: The Mandalore Project
 FROM debian:12-slim
 
 ARG TAG="base"
