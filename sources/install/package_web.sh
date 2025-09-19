@@ -174,7 +174,7 @@ function install_nosqlmap() {
     # Requests >= 2.32 requires at least python 3.8 
     local temp_fix_limit="2026-04-01"
     if check_temp_fix_expiry "$temp_fix_limit"; then
-      sed -E -i 's/requests==2\.[0-9]+\.[0-9]+/requests==2.28.0/g' setup.py
+      sed -E -i 's/requests==2\.[0-9]+\.[0-9]+/requests==2.27.1/g' setup.py
     fi
     catch_and_retry ./venv/bin/python2 setup.py install
     # https://github.com/codingo/NoSQLMap/issues/126
