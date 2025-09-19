@@ -32,7 +32,7 @@ base:
 		--build-arg BUILD_DATE=$(BUILD_DATE) \
 		--build-arg TAG=base \
 		-f base.dockerfile \
-		-t lksec/mandalore:base .
+		-t lksec/mandalore-base:$(TAG) .
 
 # Build image variant : full, web, light
 .PHONY: full web light
