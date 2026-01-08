@@ -76,23 +76,57 @@ function install_routersploit() {
     add-to-list "routersploit,https://github.com/threat9/routersploit,Security audit tool for routers."
 }
 
-function install_sliver() {
-    # CODE-CHECK-WHITELIST=add-aliases
-    colorecho "Installing Sliver"
-    # making the static version checkout a temporary thing
-    # function below will serve as a reminder to update sliver's version regularly
-    # when the pipeline fails because the time limit is reached: update the version and the time limit
-    # or check if it's possible to make this dynamic
-    local temp_fix_limit="2025-12-01"
-    if check_temp_fix_expiry "$temp_fix_limit"; then
-      # Add branch v1.5.41 due to installation of stable branch
-      git -C /opt/tools/ clone --branch v1.5.42 --depth 1 https://github.com/BishopFox/sliver.git
-      cd /opt/tools/sliver || exit
+colorecho "Installing Sliver (Binary Release)"
+
+    # 1. Prepare Directory
+    local sliver_install_dir="/opt/tools/sliver"
+    mkdir -p "$sliver_install_dir"
+    cd "$sliver_install_dir" || exit
+
+    # 2. Identify Latest Version & Architecture
+    # We use the GitHub API to find the latest tag (e.g., v1.6.0)
+    local repo="BishopFox/sliver"
+    local latest_tag
+    latest_tag=$(curl -s "https://api.github.com/repos/$repo/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    
+    # Fallback if API fails
+    if [[ -z "$latest_tag" ]]; then
+        colorecho "  [!] Could not auto-detect version. Defaulting to v1.6.0"
+        latest_tag="v1.6.0"
     fi
-    asdf set golang 1.19
-    make
-    ln -s /opt/tools/sliver/sliver-server /opt/tools/bin/sliver-server
-    ln -s /opt/tools/sliver/sliver-client /opt/tools/bin/sliver-client
+
+    colorecho "  [*] Fetching version: $latest_tag"
+
+    # Detect Arch (amd64 or arm64) for robust support
+    local arch
+    case $(uname -m) in
+        x86_64) arch="amd64" ;;
+        aarch64) arch="arm64" ;;
+        *) echo "Unsupported architecture"; return 1 ;;
+    esac
+
+    # 3. Download Server & Client binaries
+    # Naming convention changed in v1.6+: sliver-server_linux-amd64
+    local base_url="https://github.com/$repo/releases/download/$latest_tag"
+    
+    wget -q --show-progress -O sliver-server "$base_url/sliver-server_linux-$arch"
+    wget -q --show-progress -O sliver-client "$base_url/sliver-client_linux-$arch"
+
+    # 4. Set Permissions
+    chmod +x sliver-server sliver-client
+
+    # 5. Symlinks (Force overwrite with -f in case they exist)
+    ln -sf "$sliver_install_dir/sliver-server" /opt/tools/bin/sliver-server
+    ln -sf "$sliver_install_dir/sliver-client" /opt/tools/bin/sliver-client
+
+    # 6. Post-Install Checks
+    # Crucial: Sliver requires MinGW to compile Windows implants. 
+    # Check if it is missing and warn the user (or install if you have apt access here).
+    if ! command -v x86_64-w64-mingw32-gcc &> /dev/null; then
+        colorecho "  [!] WARNING: MinGW not found. 'apt-get install mingw-w64' is required for Windows implants."
+    fi
+
+    # 7. Standard Exegol Registration
     add-history sliver
     add-test-command "sliver-server help"
     add-test-command "sliver-client help"

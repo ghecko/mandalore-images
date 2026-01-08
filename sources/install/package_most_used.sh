@@ -64,7 +64,6 @@ function package_most_used() {
     install_joomscan                # Joomla scanner
     install_wpscan                  # Wordpress scanner
     install_droopescan              # Drupal scanner
-    install_drupwn                  # Drupal scanner
     install_testssl                 # SSL/TLS scanner
     install_cloudfail               # Cloudflare misconfiguration detector
     install_eyewitness              # Website screenshoter
@@ -75,7 +74,6 @@ function package_most_used() {
     install_responder               # LLMNR, NBT-NS and MDNS poisoner
     install_impacket                # Network protocols scripts
     install_enum4linux-ng           # Active Directory enumeration tool, improved Python alternative to enum4linux
-    install_smbmap                  # Allows users to enumerate samba share drives across an entire domain
     install_nuclei                  # Vulnerability scanner
     install_evilwinrm               # WinRM shell
     install_john                    # Password cracker
@@ -86,8 +84,6 @@ function package_most_used() {
     install_cyberchef               # A web based toolbox
     install_proxychains             # Network tool
     install_neo4j
-    install_bloodhound
-    install_bloodhound-py           # Ingestor for legacy BloodHound
     install_coercer                 # Python script to coerce auth through multiple methods
     post_install
     end_time=$(date +%s)

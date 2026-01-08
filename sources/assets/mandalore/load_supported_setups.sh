@@ -254,54 +254,6 @@ function deploy_firefox_policy() {
   fi
 }
 
-function deploy_bloodhound_config() {
-  logger_verbose "Deploying BloodHound User Config"
-  [[ -f "$my_setup_bh_path/config.json" ]] && cp "$my_setup_bh_path/config.json" "$bh_config_homedir/config.json"
-}
-
-function deploy_bloodhound_customqueries_merge() {
-  logger_verbose "Merging User Custom Queries with Mandalore Custom Queries for BloodHound"
-  # Merge Mandalore's customqueries.json file with the ones from my-resources
-  local cq_merge_directory="$my_setup_bh_path/customqueries_merge"
-  [[ ! -d "$cq_merge_directory" ]] && cp -r /.mandalore/skel/bloodhound/customqueries_merge "$cq_merge_directory"
-  if \
-    [[ -f "$bh_config_homedir/customqueries.json" ]] && \
-    [[ -n $(find "$cq_merge_directory" -type f -name "*.json") ]]; then
-      bqm --verbose --ignore-default --output-path "$bqm_output_file" -i "$cq_merge_directory,$bh_config_homedir/customqueries.json"
-  fi
-}
-
-function deploy_bloodhound_customqueries_replacement() {
-  logger_verbose "Merging User Custom Queries for BloodHound, and overwriting Mandalore Custom Queries"
-  local cq_replacement_directory="$my_setup_bh_path/customqueries_replacement"
-  [[ ! -d "$cq_replacement_directory" ]] && cp -r /.mandalore/skel/bloodhound/customqueries_replacement "$cq_replacement_directory"
-  if [[ -n $(find "$cq_replacement_directory" -type f -name "*.json") ]]; then
-      bqm --verbose --ignore-default --output-path "$bqm_output_file" -i "$cq_replacement_directory"
-      cq_replacement_done=1
-  fi
-}
-
-function deploy_bloodhound() {
-  wrapper_verbose "Deploying BloodHound"
-  local bh_config_homedir=~/.config/bloodhound
-  local my_setup_bh_path="$MY_SETUP_PATH/bloodhound"
-  local cq_replacement_done=0
-  # Use the dry-run flag to not create the file as bqm prompts if it already exists, hence it only generates a random filename
-  local bqm_output_file
-  bqm_output_file=$(mktemp --dry-run)
-  [[ ! -d "$bh_config_homedir" ]] && mkdir -p "$bh_config_homedir"
-  [[ ! -d "$my_setup_bh_path" ]] && cp -r /.mandalore/skel/bloodhound "$my_setup_bh_path"
-  deploy_bloodhound_config
-  # If a user places Bloodhound json files in both folders merge and replacement,
-  # only process the replacement.
-  deploy_bloodhound_customqueries_replacement
-  [[ $cq_replacement_done -eq 0 ]] && deploy_bloodhound_customqueries_merge
-  if [[ -f "$bqm_output_file" ]]; then
-    mv "$bqm_output_file" "$bh_config_homedir/customqueries.json" &&
-    logger_verbose "$bh_config_homedir/customqueries.json replaced by $bqm_output_file"
-  fi
-}
-
 function trust_ca_certs_in_firefox() {
   wrapper_verbose "Trusting Burp CA certificate in Firefox"
   logger_verbose "Running Burp Suite CA installation in background to save time"
@@ -352,7 +304,6 @@ deploy_nvim
 deploy_apt
 deploy_python3
 deploy_firefox_policy
-deploy_bloodhound
 trust_ca_certs_in_firefox
 deploy_arsenal_cheatsheet
 

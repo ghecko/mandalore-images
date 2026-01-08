@@ -1,1 +1,0 @@
-cypheroth.sh -u neo4j -p mandalore4thewin -d "$DOMAIN"

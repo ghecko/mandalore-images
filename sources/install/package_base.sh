@@ -61,26 +61,6 @@ function install_go() {
       asdf set --home golang 1.22.2
     fi
 
-#    if command -v /usr/local/go/bin/go &>/dev/null; then
-#        return
-#    fi
-#    cd /tmp/ || exit
-#    if [[ $(uname -m) = 'x86_64' ]]
-#    then
-#        wget -O /tmp/go.tar.gz https://go.dev/dl/go1.21.5.linux-amd64.tar.gz
-#    elif [[ $(uname -m) = 'aarch64' ]]
-#    then
-#        wget -O /tmp/go.tar.gz https://go.dev/dl/go1.21.5.linux-arm64.tar.gz
-#    elif [[ $(uname -m) = 'armv7l' ]]
-#    then
-#        wget -O /tmp/go.tar.gz https://go.dev/dl/go1.21.5.linux-armv6l.tar.gz
-#    else
-#        criticalecho-noexit "This installation function doesn't support architecture $(uname -m)" && return
-#    fi
-#    rm -rf /usr/local/go
-#    tar -C /usr/local -xzf /tmp/go.tar.gz
-#    rm -rf /tmp/go.tar.gz
-#    export PATH=$PATH:/usr/local/go/bin
     add-test-command "go version"
 }
 
