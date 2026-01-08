@@ -87,31 +87,6 @@ function install_searchsploit() {
     sed -i 's/opt\/exploitdb/opt\/tools\/exploitdb/' ~/.searchsploit_rc
 }
 
-function install_triliumnext() {
-    colorecho "Installing TriliumNext"
-    fapt libpng16-16 libpng-dev pkg-config autoconf libtool build-essential nasm libx11-dev libxkbfile-dev
-    # https://github.com/TriliumNext/Notes/issues/1890
-    local temp_fix_limit="2025-12-01"
-    if check_temp_fix_expiry "$temp_fix_limit"; then
-      git -C /opt/tools/ clone --branch v0.93.0 --depth 1 https://github.com/triliumnext/notes.git triliumnext
-    fi
-    #git -C /opt/tools/ clone --depth 1 https://github.com/triliumnext/notes.git triliumnext
-    cd /opt/tools/triliumnext || exit
-    zsh -c "source ~/.zshrc && nvm use default && npm install"
-    mkdir /opt/tools/triliumnext/data
-    # config.ini contains the exposition port and host
-    cp -v /root/sources/assets/triliumnext/config.ini /opt/tools/triliumnext/data/config.ini
-    cp -v /root/sources/assets/triliumnext/triliumnext-manager.sh /opt/tools/triliumnext/triliumnext-manager.sh
-    chmod +x /opt/tools/triliumnext/triliumnext-manager.sh
-    /opt/tools/triliumnext/triliumnext-manager.sh start
-    /opt/tools/triliumnext/triliumnext-manager.sh configure
-    /opt/tools/triliumnext/triliumnext-manager.sh stop
-    add-aliases triliumnext
-    add-history triliumnext
-    add-test-command "triliumnext-test"
-    add-to-list "TriliumNext,https://github.com/TriliumNext/Notes,Personal knowledge management system (successor to Trilium)."
-}
-
 function install_ngrok() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing ngrok"
@@ -225,7 +200,6 @@ function package_misc() {
     install_shellerator     # Reverse shell generator
     install_uberfile        # file uploader/downloader commands generator
     install_arsenal         # Cheatsheets tool
-    install_triliumnext     # notes taking tool
     install_ngrok           # expose a local development server to the Internet
     install_whatportis      # Search default port number
     install_objectwalker    # Python module to explore the object tree to extract paths to interesting objects in memory

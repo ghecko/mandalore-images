@@ -570,7 +570,7 @@ function install_ldaprelayscan() {
     pip3 install -r requirements.txt
     # without following fix, tool raises "oscrypto.errors.LibraryNotFoundError: Error detecting the version of libcrypto"
     # see https://github.com/wbond/oscrypto/issues/78 and https://github.com/wbond/oscrypto/issues/75
-    local temp_fix_limit="2025-12-01"
+    local temp_fix_limit="2026-04-01"
     if check_temp_fix_expiry "$temp_fix_limit"; then
       pip3 install --force oscrypto@git+https://github.com/wbond/oscrypto.git
     fi
@@ -916,10 +916,6 @@ function install_pre2k() {
     colorecho "Installing pre2k"
     pipx install --system-site-packages git+https://github.com/garrettfoster13/pre2k
     # https://github.com/fastapi/typer/discussions/1215
-    local temp_fix_limit="2025-12-01"
-    if check_temp_fix_expiry "$temp_fix_limit"; then
-      pipx inject pre2k "click~=8.1.8" --force
-    fi
     add-history pre2k
     add-test-command "pre2k --help"
     add-to-list "pre2k,https://github.com/garrettfoster13/pre2k,pre2k is a tool to check if a Windows domain has any pre-2000 Windows 2000 logon names still in use."
@@ -1104,11 +1100,6 @@ function install_roastinthemiddle() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing roastinthemiddle"
     pipx install --system-site-packages git+https://github.com/Tw1sm/RITM
-    # https://github.com/fastapi/typer/discussions/1215
-    local temp_fix_limit="2025-12-01"
-    if check_temp_fix_expiry "$temp_fix_limit"; then
-      pipx inject ritm "click~=8.1.8" --force
-    fi
     add-history roastinthemiddle
     add-test-command "roastinthemiddle --help"
     add-to-list "roastinthemiddle,https://github.com/Tw1sm/RITM,RoastInTheMiddle is a tool to intercept and relay NTLM authentication requests."
@@ -1153,7 +1144,7 @@ function install_sccmhunter() {
     source ./venv/bin/activate
     pip3 install -r requirements.txt
     # https://github.com/fastapi/typer/discussions/1215
-    local temp_fix_limit="2025-12-01"
+    local temp_fix_limit="2026-04-01"
     if check_temp_fix_expiry "$temp_fix_limit"; then
       pip3 install click~=8.1.8
     fi
