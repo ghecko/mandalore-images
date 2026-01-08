@@ -111,7 +111,14 @@ function install_chainsaw() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing chainsaw"
     source "$HOME/.cargo/env"
-    cargo install chainsaw
+    local tmp_dir
+    tmp_dir=$(mktemp -d)
+    mkdir -p /opt/tools/chainsaw
+    git -C "$tmp_dir" clone --depth 1 https://github.com/WithSecureLabs/chainsaw.git
+    cd "$tmp_dir/chainsaw" || exit
+    cargo build --release
+    mv "$tmp_dir/chainsaw/target/release/chainsaw" /opt/tools/chainsaw/
+    ln -v -s /opt/tools/chainsaw/chainsaw /opt/tools/bin/chainsaw
     add-history chainsaw
     add-test-command "chainsaw --help"
     add-to-list "chainsaw,https://github.com/WithSecureLabs/chainsaw,Rapidly Search and Hunt through Windows Forensic Artefacts"

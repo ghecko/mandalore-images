@@ -1,0 +1,1 @@
+evil-winrm-py --ip "$TARGET" --user "$USER" --password "$PASSWORD"

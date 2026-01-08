@@ -88,7 +88,7 @@ function install_caido() {
 
     # Desktop
     local caido_deb
-    caido_deb=$(echo "$caido_json" | jq -r --arg arch "$arch" '.links[] | select(.kind=="desktop" and .format=="deb" and .arch==$arch) | .link')
+    caido_deb=$(echo "$caido_json" | jq -r --arg arch "$arch" '.links[] | select(.kind=="desktop" and .format=="deb" and .arch=="$arch") | .link')
     local caido_file_name
     caido_file_name=$(basename "$caido_deb")
     wget "$caido_deb" -O "$tmp_dir/$caido_file_name"
@@ -96,7 +96,7 @@ function install_caido() {
 
     # CLI
     local caido_cli
-    caido_cli=$(echo "$caido_json" | jq -r --arg arch "$arch" '.links[] | select(.kind=="cli" and .format=="tar.gz" and .arch==$arch) | .link')
+    caido_cli=$(echo "$caido_json" | jq -r --arg arch "$arch" '.links[] | select(.kind=="cli" and .format=="tar.gz" and .arch=="$arch") | .link')
     local caido_file_name_cli
     caido_file_name_cli=$(basename "$caido_cli")
     wget "$caido_cli" -O "$tmp_dir/$caido_file_name_cli"
@@ -213,7 +213,8 @@ function install_fuxploider() {
 function install_gau() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing gau"
-    GO111MODULE=on go install -v github.com/lc/gau@latest
+    go install github.com/lc/gau/v2/cmd/gau@latest
+    asdf reshim golang
     add-history gau
     add-test-command "gau --help"
     add-to-list "gau,https://github.com/lc/gau,Fast tool for fetching URLs"
@@ -442,6 +443,18 @@ function install_linkfinder() {
     add-history linkfinder
     add-test-command "linkfinder.py --help"
     add-to-list "linkfinder,https://github.com/GerbenJavado/LinkFinder,a Python script that finds endpoints and their parameters in JavaScript files."
+}
+
+function install_massdns() {
+    # CODE-CHECK-WHITELIST=add-aliases
+    colorecho "Installing massdns"
+    git -C /opt/tools clone --depth 1 https://github.com/blechschmidt/massdns.git
+    cd /opt/tools/massdns || exit
+    make
+    ln -s /opt/tools/massdns/bin/massdns /opt/tools/bin/massdns
+    add-history massdns
+    add-test-command "massdns --help"
+    add-to-list "massdns,https://github.com/blechschmidt/massdns,A high-performance DNS stub resolver for bulk lookups and reconnaissance (subdomain enumeration). Needed for shuffledns"
 }
 
 function install_moodlescan() {
@@ -716,6 +729,16 @@ function install_whatweb() {
 
 }
 
+function install_wpprobe() {
+    # CODE-CHECK-WHITELIST=add-aliases
+    colorecho "Installing wpprobe"
+    go install -v github.com/Chocapikk/wpprobe@latest
+    asdf reshim golang
+    add-history wpprobe
+    add-test-command "wpprobe --help"
+    add-to-list "wpprobe,https://github.com/Chocapikk/wpprobe,A fast WordPress plugin enumeration tool."
+}
+
 function install_wpscan() {
     colorecho "Installing wpscan"
     rvm use 3.2.2@wpscan --create
@@ -827,6 +850,7 @@ function package_web() {
     install_kiterunner              # Web fuzzer (fast and pretty good for api bruteforce)
     install_kraken                  # Kraken is a modular multi-language webshell.
     install_linkfinder              # Discovers endpoint JS files
+    install_massdns                 # DNS resolver (Needed for shuffledns)
     install_moodlescan              # Moodle scanner
     install_naabu                   # Fast port scanner
     install_nosqlmap                # NoSQL scanner
@@ -850,6 +874,7 @@ function package_web() {
     install_wafw00f                 # Waf detector
     install_weevely                 # Weaponized web shell
     install_whatweb                 # Recognises web technologies including content management
+    install_wpprobe                 # WordPress plugin scanner
     install_wpscan                  # Wordpress scanner
     install_xspear                  # XSS scanner
     install_xsrfprobe               # CSRF scanner

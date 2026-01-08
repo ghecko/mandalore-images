@@ -76,7 +76,9 @@ function install_routersploit() {
     add-to-list "routersploit,https://github.com/threat9/routersploit,Security audit tool for routers."
 }
 
-colorecho "Installing Sliver (Binary Release)"
+function install_sliver() {
+    # CODE-CHECK-WHITELIST=add-history
+    colorecho "Installing Sliver (Binary Release)"
 
     # 1. Prepare Directory
     local sliver_install_dir="/opt/tools/sliver"

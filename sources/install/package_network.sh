@@ -250,13 +250,72 @@ function install_tailscale() {
 function install_ligolo-ng() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing ligolo-ng"
-    git -C /opt/tools clone --depth 1 https://github.com/nicocha30/ligolo-ng.git
-    cd /opt/tools/ligolo-ng || exit
-    go build -o agent cmd/agent/main.go
-    go build -o proxy cmd/proxy/main.go
-    ln -s /opt/tools/ligolo-ng/proxy /opt/tools/bin/ligolo-ng
+    fapt jq
+    local tmp_dir
+    tmp_dir=$(mktemp -d)
+    
+    local arch
+    if [[ $(uname -m) = 'x86_64' ]]; then
+        arch="amd64"
+    elif [[ $(uname -m) = 'aarch64' ]]; then
+        arch="arm64"
+    else
+        criticalecho-noexit "No ligolo-ng release for architecture $(uname -m)" && return
+    fi
+
+    # Fetch Release JSON
+    local release_json
+    release_json=$(curl -s https://api.github.com/repos/nicocha30/ligolo-ng/releases/latest)
+
+    # Extract download URLs
+    local proxy_url
+    local agent_url
+    proxy_url=$(echo "$release_json" | jq -r --arg arch "$arch" '.assets[] | select(.name | contains("proxy") and contains("linux") and contains($arch)) | .browser_download_url')
+    agent_url=$(echo "$release_json" | jq -r --arg arch "$arch" '.assets[] | select(.name | contains("agent") and contains("linux") and contains($arch)) | .browser_download_url')
+
+    if [[ -z "$proxy_url" ]] || [[ -z "$agent_url" ]]; then
+        colorecho "Error: Could not find ligolo-ng release for architecture $arch"
+        rm -rf "$tmp_dir"
+        return
+    fi
+    
+    # Download and extract Proxy
+    wget -q "$proxy_url" -O "$tmp_dir/ligolo_proxy.tar.gz"
+    tar -xf "$tmp_dir/ligolo_proxy.tar.gz" -C "$tmp_dir"
+    # The release tarball usually contains the binary directly, e.g., "proxy"
+    # We need to verify the extracted name or assume standard naming from this repo
+    # Based on repo, it extracts as "proxy" or "agent"
+    
+    if [[ -f "$tmp_dir/proxy" ]]; then
+        mv "$tmp_dir/proxy" /opt/tools/bin/ligolo-proxy
+    elif [[ -f "$tmp_dir/ligolo-proxy" ]]; then
+        mv "$tmp_dir/ligolo-proxy" /opt/tools/bin/ligolo-proxy
+    else 
+         # Fallback search if name differs
+         find "$tmp_dir" -type f -name "*proxy*" -exec mv {} /opt/tools/bin/ligolo-proxy \;
+    fi
+
+    # Download and extract Agent
+    wget -q "$agent_url" -O "$tmp_dir/ligolo_agent.tar.gz"
+    tar -xf "$tmp_dir/ligolo_agent.tar.gz" -C "$tmp_dir"
+    
+     if [[ -f "$tmp_dir/agent" ]]; then
+        mv "$tmp_dir/agent" /opt/tools/bin/ligolo-agent
+    elif [[ -f "$tmp_dir/ligolo-agent" ]]; then
+        mv "$tmp_dir/ligolo-agent" /opt/tools/bin/ligolo-agent
+    else
+         find "$tmp_dir" -type f -name "*agent*" -exec mv {} /opt/tools/bin/ligolo-agent \;
+    fi
+
+    # Symlink for backward compatibility / ease of use
+    ln -sf /opt/tools/bin/ligolo-proxy /opt/tools/bin/ligolo-ng
+
+    # Cleanup
+    rm -rf "$tmp_dir"
+
     add-history ligolo-ng
-    add-test-command "ligolo-ng --help"
+    add-test-command "ligolo-proxy --help"
+    add-test-command "ligolo-agent --help"
     add-to-list "ligolo-ng,https://github.com/nicocha30/ligolo-ng,An advanced yet simple tunneling tool that uses a TUN interface."
 }
 

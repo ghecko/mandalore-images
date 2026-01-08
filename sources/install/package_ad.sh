@@ -331,21 +331,20 @@ function install_dploot() {
 }
 
 # Linux support WIP: https://github.com/MWR-CyberSec/PXEThief/pull/11
-# function install_PXEThief() {
-#     # CODE-CHECK-WHITELIST=
-#     colorecho "Installing PXEThief"
-#     git -C /opt/tools/ clone --depth 1 https://github.com/MWR-CyberSec/PXEThief
-#     cd /opt/tools/PXEThief || exit
-#     python3 -m venv ./venv
-#     source ./venv/bin/activate
-# TODO: pywin32 not found
-#     pip3 install -r requirements.txt
-#     deactivate
-#     add-aliases PXEThief
-#     add-history PXEThief
-#     add-test-command "PXEThief --help"
-#     add-to-list "PXEThief,https://github.com/MWR-CyberSec/PXEThief,PXEThief is a toolset designed to exploit vulnerabilities in Microsoft Endpoint Configuration Manager's OS Deployment enabling credential theft from network and task sequence accounts."
-# }
+function install_PXEThief() {
+    # CODE-CHECK-WHITELIST=
+    colorecho "Installing PXEThief"
+    git -C /opt/tools/ clone --depth 1 https://github.com/MWR-CyberSec/PXEThief
+    cd /opt/tools/PXEThief || exit
+    python3 -m venv ./venv
+    source ./venv/bin/activate
+    pip3 install -r requirements.txt
+    deactivate
+    add-aliases PXEThief
+    add-history PXEThief
+    add-test-command "PXEThief --help"
+    add-to-list "PXEThief,https://github.com/MWR-CyberSec/PXEThief,PXEThief is a toolset designed to exploit vulnerabilities in Microsoft Endpoint Configuration Manager's OS Deployment enabling credential theft from network and task sequence accounts."
+}
 
 function install_enum4linux-ng() {
     # CODE-CHECK-WHITELIST=add-aliases
@@ -374,6 +373,15 @@ function install_evilwinrm() {
     add-history evil-winrm
     add-test-command "evil-winrm --help"
     add-to-list "evilwinrm,https://github.com/Hackplayers/evil-winrm,Tool to connect to a remote Windows system with WinRM."
+}
+
+function install_evil-winrm-py() {
+    # CODE-CHECK-WHITELIST=add-aliases
+    colorecho "Installing evil-winrm-py"
+    pipx install --system-site-package 'evil-winrm-py[kerberos]@git+https://github.com/adityatelange/evil-winrm-py'
+    add-history evil-winrm-py
+    add-test-command "evil-winrm-py --help"
+    add-to-list "evil-winrm-py,https://github.com/adityatelange/evil-winrm-py,Evil-WinRM. But in python"
 }
 
 function install_extractbitlockerkeys() {
@@ -727,6 +735,7 @@ function install_netexec() {
     mkdir -p ~/.nxc
     [[ -f ~/.nxc/nxc.conf ]] && mv ~/.nxc/nxc.conf ~/.nxc/nxc.conf.bak
     cp -v /root/sources/assets/netexec/nxc.conf ~/.nxc/nxc.conf
+    register-python-argcomplete nxc >> ~/.zshrc
     add-aliases netexec
     add-history netexec
     add-test-command "netexec --help"
@@ -1345,7 +1354,6 @@ function package_ad() {
     start_time=$(date +%s)
     install_ad_apt_tools
     # install_mitm6_sources         # Install mitm6 from sources
-    # install_PXEThief             # TODO: pywin32 not found - PXEThief is a toolset designed to exploit vulnerabilities in Microsoft Endpoint Configuration Manager's OS Deployment, enabling credential theft from network and task sequence accounts.
     # install_scrtdnsdump          # This tool is a fork of adidnsdump (https://github.com/dirkjanm/adidnsdump). We are currently waiting to see if a PR will be made.
     install_abuseACL
     install_aclpwn                  # ACL exploiter
@@ -1368,6 +1376,7 @@ function package_ad() {
     install_enum4linux-ng           # Hosts enumeration
     install_enyx                    # Hosts discovery
     install_evilwinrm               # WinRM shell
+    install_evil-winrm-py
     install_extractbitlockerkeys   # Extract Bitlocker recovery keys from all the computers of the domain
     install_freeipscanner
     install_gmsadumper
@@ -1410,6 +1419,7 @@ function package_ad() {
     install_pretender
     install_privexchange            # Exchange exploiter
     install_pth-tools               # Pass the hash attack
+    install_PXEThief
     install_pyfinduncommonshares
     install_pygpoabuse
     install_pylaps
