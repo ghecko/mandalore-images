@@ -84,11 +84,24 @@ function install_caido() {
 
     # Fetch JSON once
     local caido_json
-    caido_json=$(curl -s https://api.caido.io/releases/latest)
+    # Use 'command curl' to bypass the common.sh wrapper which prints to stdout
+    if ! caido_json=$(command curl -s https://api.caido.io/releases/latest); then
+         colorecho "Error: Failed to fetch Caido release info"
+         rm -rf "$tmp_dir"
+         return
+    fi
+     # Verify strict JSON content
+    if ! echo "$caido_json" | jq -e . >/dev/null 2>&1; then
+        criticalecho-noexit "Error: Invalid JSON received from Caido API"
+        echo "Received content:" >&2
+        echo "$caido_json" >&2
+        rm -rf "$tmp_dir"
+        return
+    fi
 
     # Desktop
     local caido_deb
-    caido_deb=$(echo "$caido_json" | jq -r --arg arch "$arch" '.links[] | select(.kind=="desktop" and .format=="deb" and .arch=="$arch") | .link')
+    caido_deb=$(echo "$caido_json" | jq -r --arg arch "$arch" '.links[] | select(.kind=="desktop" and .format=="deb" and .arch==$arch) | .link')
     local caido_file_name
     caido_file_name=$(basename "$caido_deb")
     wget "$caido_deb" -O "$tmp_dir/$caido_file_name"
@@ -96,7 +109,7 @@ function install_caido() {
 
     # CLI
     local caido_cli
-    caido_cli=$(echo "$caido_json" | jq -r --arg arch "$arch" '.links[] | select(.kind=="cli" and .format=="tar.gz" and .arch=="$arch") | .link')
+    caido_cli=$(echo "$caido_json" | jq -r --arg arch "$arch" '.links[] | select(.kind=="cli" and .format=="tar.gz" and .arch==$arch) | .link')
     local caido_file_name_cli
     caido_file_name_cli=$(basename "$caido_cli")
     wget "$caido_cli" -O "$tmp_dir/$caido_file_name_cli"
@@ -151,7 +164,7 @@ function install_eyewitness() {
     cd /opt/tools/EyeWitness || exit
     python3 -m venv --system-site-packages ./venv
     source ./venv/bin/activate
-    ./Python/setup/setup.sh
+    ./setup/setup.sh
     deactivate
     add-aliases eyewitness
     add-history eyewitness
@@ -703,12 +716,7 @@ function install_wafw00f() {
 
 function install_weevely() {
     colorecho "Installing weevely"
-    git -C /opt/tools clone --depth 1 https://github.com/epinna/weevely3
-    cd /opt/tools/weevely3 || exit
-    python3 -m venv --system-site-packages ./venv
-    source ./venv/bin/activate
-    pip3 install -r requirements.txt
-    deactivate
+    uv tool install https://github.com/epinna/weevely3.git
     add-aliases weevely
     add-history weevely
     add-test-command "weevely.py --help"

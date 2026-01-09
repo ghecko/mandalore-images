@@ -6,7 +6,7 @@ source common.sh
 function install_ad_apt_tools() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing AD apt tools"
-    fapt samdump2 smbclient onesixtyone nbtscan ldap-utils krb5-user
+    fapt samdump2 smbclient onesixtyone nbtscan ldap-utils krb5-user libkrb5-dev krb5-config
 
     add-history samdump2
     add-history smbclient
@@ -1418,8 +1418,7 @@ function package_ad() {
     install_pre2k
     install_pretender
     install_privexchange            # Exchange exploiter
-    install_pth-tools               # Pass the hash attack
-    install_PXEThief
+    # install_PXEThief              # Linux support WIP
     install_pyfinduncommonshares
     install_pygpoabuse
     install_pylaps

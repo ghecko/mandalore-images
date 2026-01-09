@@ -45,13 +45,11 @@ function install_go() {
     # CODE-CHECK-WHITELIST=add-aliases,add-to-list,add-history
     colorecho "Installing go (Golang)"
     asdf plugin add golang https://github.com/asdf-community/asdf-golang.git
-    # 1.19 needed by sliver
-    asdf install golang 1.19
-    #asdf install golang latest
-    #asdf set --home golang latest
     # With golang 1.23 many package build are broken, temp fix to use 1.22.2 as golang latest
     local temp_fix_limit="2026-04-01"
     if check_temp_fix_expiry "$temp_fix_limit"; then
+      # 1.24.4 needed for BloodHound-CE
+      asdf install golang 1.24.4
       # 1.23 needed by sensepost/ruler
       asdf install golang 1.23.11
       # 1.24 needed by BloodHound-CE
@@ -206,6 +204,28 @@ function install_pipx() {
     pip3 install pipx
     pipx ensurepath
     add-test-command "pipx --version"
+}
+
+function install_uv() {
+    # CODE-CHECK-WHITELIST=add-test-command
+    colorecho "Installing uv (Python package manager)"
+    
+    # Force installation to /usr/local/bin so it persists in PATH across Docker layers
+    export UV_INSTALL_DIR="/usr/local/bin"
+    
+    # Install using the official standalone script
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    
+    # Ensure it's executable (installer usually handles this, but safety first)
+    chmod +x /usr/local/bin/uv
+
+    # Enable autocompletion for future interactive shells
+    if command -v uv >/dev/null; then
+        echo 'eval "$(uv generate-shell-completion zsh)"' >> ~/.zshrc
+        echo 'eval "$(uv generate-shell-completion bash)"' >> ~/.bashrc
+    fi
+
+    add-test-command "uv --version"
 }
 
 function install_pyftpdlib() {
@@ -493,6 +513,7 @@ function package_base() {
 
     # Rust, Cargo, rvm
     install_rust_cargo
+    install_uv
     install_rvm                                         # Ruby Version Manager
 
     # java11 install, java21 install, and java17 as default

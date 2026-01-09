@@ -250,7 +250,6 @@ function install_tailscale() {
 function install_ligolo-ng() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing ligolo-ng"
-    fapt jq
     local tmp_dir
     tmp_dir=$(mktemp -d)
     
@@ -265,7 +264,20 @@ function install_ligolo-ng() {
 
     # Fetch Release JSON
     local release_json
-    release_json=$(curl -s https://api.github.com/repos/nicocha30/ligolo-ng/releases/latest)
+    # Use 'command curl' to bypass the common.sh wrapper which prints to stdout (causing JSON corruption)
+    if ! release_json=$(command curl -s https://api.github.com/repos/nicocha30/ligolo-ng/releases/latest); then
+        colorecho "Error: Failed to fetch ligolo-ng release info"
+        rm -rf "$tmp_dir"
+        return
+    fi
+    # Verify strict JSON content
+    if ! echo "$release_json" | jq -e . >/dev/null 2>&1; then
+        criticalecho-noexit "Error: Invalid JSON received from GitHub API"
+        echo "Received content:" >&2
+        echo "$release_json" >&2
+        rm -rf "$tmp_dir"
+        return
+    fi
 
     # Extract download URLs
     local proxy_url
@@ -274,7 +286,8 @@ function install_ligolo-ng() {
     agent_url=$(echo "$release_json" | jq -r --arg arch "$arch" '.assets[] | select(.name | contains("agent") and contains("linux") and contains($arch)) | .browser_download_url')
 
     if [[ -z "$proxy_url" ]] || [[ -z "$agent_url" ]]; then
-        colorecho "Error: Could not find ligolo-ng release for architecture $arch"
+        colorecho "Error: Could not find ligolo-ng binaries for architecture $arch"
+        echo "Release JSON (truncated): $(echo "$release_json" | head -n 20)" >&2
         rm -rf "$tmp_dir"
         return
     fi

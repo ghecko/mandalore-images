@@ -2,7 +2,7 @@
 # Author: The Mandalore Project
 
 # Functions and commands that will be retried multiple times to counter random network issues when building
-CATCH_AND_RETRY_COMMANDS=("curl" "wget" "apt-fast" "git" "go" "apt-get" "nvm" "npm" "pip" "pipx" "pip2" "pip3" "cargo" "gem")
+CATCH_AND_RETRY_COMMANDS=("curl" "wget" "apt-fast" "git" "go" "apt-get" "nvm" "npm" "pip" "pipx" "pip2" "pip3" "cargo" "gem" "uv")
 
 export RED='\033[1;31m'
 export BLUE='\033[1;34m'
@@ -45,6 +45,11 @@ function add-history() {
 function add-test-command() {
     colorecho "Adding build pipeline test command: $*"
     echo "$*" >> "/.mandalore/unit_tests_all_commands.txt"
+}
+
+function add-test-gui-command() {
+    colorecho "Adding build pipeline test gui command: $*"
+    echo "$*" >> "/.mandalore/unit_tests_gui_commands.txt"
 }
 
 function fapt() {
@@ -119,20 +124,15 @@ function catch_and_retry() {
   # 4th retry: 2×4^4 = 2×256  = 512 seconds
   # 5th retry: 2×4^5 = 2×1024 = 2048 seconds
   local max_wait_time=600
-  local command="$*"
-  # escaping characters that could mess with the sh execution
-  local escaped_command
-  # not double-quoting $command as it would escape spaces inside the command and we don't want that
-  # shellcheck disable=SC2086
-  escaped_command=$(printf '%q ' $command)
+
+  # We use 'command' to bypass the shell function wrapper and call the binary directly
+  # This avoids the infinite loop without needing 'sh -c' and complex escaping
+  
   for ((i=1; i<=retries; i++)); do
-    # sh -c is used instead of an "eval" in order to avoid an infinite loop
-    #  for instance, with an "eval", "wget" would point to the "wget" function defined with define_retry_function()
-    # TODO : there is a limitation to this approach. It escapes metachars as well (like &&, ;, ||,)
-    #  it means commands like "cmd1 && cmd2" won't work and will be interpreted as "cmd1 \&\& cmd2"
-    echo "[MANDALORE DEBUG] sh -c \"$escaped_command\""
+    echo "[MANDALORE DEBUG] $*" >&2
     # If command exits successfully, no need for more retries
-    sh -c "$escaped_command" && return 0
+    command "$@" && return 0
+    
     # Calculate the exponential backoff time
     local wait_time=$((scale_factor * (base_exponent ** i)))
     # Cap it at max_wait_time
@@ -149,7 +149,7 @@ function define_retry_function() {
   eval "
   function $original_command() {
     colorecho 'Catch & retry function for: $1'
-    catch_and_retry \"$original_command \$@\"
+    catch_and_retry \"$original_command\" \"\$@\"
   }
   "
 }
