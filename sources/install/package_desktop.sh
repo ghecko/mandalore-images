@@ -111,10 +111,12 @@ function install_xfce() {
 
 function package_desktop() {
     set_env
+    init_failure_tracking
     local start_time
     local end_time
     start_time=$(date +%s)
-    install_xfce
+    safe_install desktop install_xfce
+    print_failure_summary
     post_install
     end_time=$(date +%s)
     local elapsed_time=$((end_time - start_time))

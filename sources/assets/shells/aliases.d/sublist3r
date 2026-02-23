@@ -1,0 +1,2 @@
+alias Sublist3r='/opt/tools/Sublist3r/venv/bin/python3 /opt/tools/Sublist3r/sublist3r.py'
+alias sublist3r='Sublist3r'

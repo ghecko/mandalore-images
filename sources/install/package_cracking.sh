@@ -29,7 +29,8 @@ function install_john() {
     git -C /opt/tools/ clone --depth 1 https://github.com/openwall/john
     cd /opt/tools/john/src || exit
     ./configure --disable-native-tests && make
-    yes|cpan install Compress::Raw::Lzma
+    # echo yes to avoid CPAN configuration prompt if it appears, but handle pipefail if active
+    yes "yes" | cpan install Compress::Raw::Lzma || true
     add-aliases john-the-ripper
     add-history john-the-ripper
     add-test-command "john --help"
@@ -40,7 +41,7 @@ function install_john() {
 function install_name-that-hash() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing Name-That-Hash"
-    pipx install --system-site-packages name-that-hash
+    uv tool install name-that-hash
     add-history name-that-hash
     add-test-command "nth --help"
     add-to-list "name-that-hash,https://github.com/HashPals/Name-That-Hash,Online tool for identifying hashes."
@@ -60,7 +61,7 @@ function install_haiti() {
 function install_geowordlists() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing GeoWordlists"
-    pipx install --system-site-packages git+https://github.com/p0dalirius/GeoWordlists
+    uv tool install git+https://github.com/p0dalirius/GeoWordlists
     add-history geowordlists
     add-test-command "geowordlists --help"
     add-to-list "geowordlists,https://github.com/p0dalirius/GeoWordlists,tool to generate wordlists of passwords containing cities at a defined distance around the client city."
@@ -84,15 +85,17 @@ function install_pkcrack() {
 # Package dedicated to offline cracking/bruteforcing tools
 function package_cracking() {
     set_env
+    init_failure_tracking
     local start_time
     local end_time
     start_time=$(date +%s)
-    install_cracking_apt_tools
-    install_john                    # Password cracker
-    install_name-that-hash          # Name-That-Hash, the hash identifier tool
-    install_haiti                   # haiti, hash type identifier
-    install_geowordlists            # wordlists generator
-    install_pkcrack                 # known plaintext ZIP cracker
+    safe_install cracking install_cracking_apt_tools
+    safe_install cracking install_john                    # Password cracker
+    safe_install cracking install_name-that-hash          # Name-That-Hash, the hash identifier tool
+    safe_install cracking install_haiti                   # haiti, hash type identifier
+    safe_install cracking install_geowordlists            # wordlists generator
+    safe_install cracking install_pkcrack                 # known plaintext ZIP cracker
+    print_failure_summary
     post_install
     end_time=$(date +%s)
     local elapsed_time=$((end_time - start_time))

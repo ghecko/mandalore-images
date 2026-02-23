@@ -42,7 +42,7 @@ function install_zsteg() {
 function install_stegolsb() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing stegolsb"
-    pipx install --system-site-packages stego-lsb
+    uv tool install stego-lsb
     add-history stegolsb
     add-test-command "stegolsb --version"
     add-to-list "stegolsb,https://github.com/KyTn/STEGOLSB,Steganography tool to hide data in BMP images using least significant bit algorithm"
@@ -51,12 +51,14 @@ function install_stegolsb() {
 # Package dedicated to steganography tools
 function package_steganography() {
     set_env
+    init_failure_tracking
     local start_time
     local end_time
     start_time=$(date +%s)
-    install_steganography_apt_tools
-    install_zsteg                   # Detect stegano-hidden data in PNG & BMP
-    install_stegolsb                # (including wavsteg)
+    safe_install steganography install_steganography_apt_tools
+    safe_install steganography install_zsteg                   # Detect stegano-hidden data in PNG & BMP
+    safe_install steganography install_stegolsb                # (including wavsteg)
+    print_failure_summary
     post_install
     end_time=$(date +%s)
     local elapsed_time=$((end_time - start_time))

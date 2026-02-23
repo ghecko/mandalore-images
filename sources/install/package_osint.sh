@@ -37,19 +37,25 @@ function install_osint_apt_tools() {
 function install_youtubedl() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing youtube-dl"
-    pipx install --system-site-packages youtube-dl
+    uv tool install youtube-dl
     add-history youtube-dl
     add-test-command "youtube-dl --version"
     add-to-list "youtubedl,https://github.com/ytdl-org/youtube-dl,Download videos from YouTube and other sites."
 }
 
 function install_sublist3r() {
-    # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing Sublist3r"
-    pipx install --system-site-packages git+https://github.com/aboul3la/Sublist3r
+    # uv tool install git+https://github.com/aboul3la/Sublist3r fails with metadata error
+    git -C /opt/tools/ clone --depth 1 https://github.com/aboul3la/Sublist3r
+    cd /opt/tools/Sublist3r || exit
+    uv venv --python 3.11 --seed ./venv
+    source ./venv/bin/activate
+    uv pip install -r requirements.txt
+    deactivate
+    add-aliases sublist3r
     add-history sublist3r
     add-test-command "sublist3r --help"
-    add-to-list "sublist3r,https://github.com/aboul3la/Sublist3r,a Python tool designed to enumerate subdomains of websites."
+    add-to-list "sublist3r,https://github.com/aboul3la/Sublist3r,Sublist3r is a python tool designed to enumerate subdomains of websites using OSINT."
 }
 
 function install_assetfinder() {
@@ -95,7 +101,7 @@ function install_findomain() {
 function install_holehe() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing holehe"
-    pipx install --system-site-packages holehe
+    uv tool install holehe
     add-history holehe
     add-test-command "holehe --help"
     add-to-list "holehe,https://github.com/megadose/holehe,mail osint tool finding out if it is used on websites."
@@ -106,7 +112,7 @@ function install_simplyemail() {
     git -C /opt/tools/ clone --branch master --depth 1 https://github.com/killswitch-GUI/SimplyEmail.git
     cd /opt/tools/SimplyEmail/ || exit
     fapt antiword odt2txt libxml2-dev libxslt1-dev
-    virtualenv --python python2 ./venv
+    python2 -m virtualenv --python python2 ./venv
     source ./venv/bin/activate
     pip2 install -r ./setup/requirments.txt
     deactivate
@@ -120,9 +126,9 @@ function install_theharvester() {
     colorecho "Installing theHarvester"
     git -C /opt/tools/ clone --depth 1 https://github.com/laramies/theHarvester
     cd /opt/tools/theHarvester || exit
-    python3.13 -m venv --system-site-packages ./venv
+    uv venv --python 3.13 --seed ./venv
     source ./venv/bin/activate
-    pip3 install .
+    uv pip install .
     deactivate
     add-aliases theharvester
     add-history theharvester
@@ -133,7 +139,7 @@ function install_theharvester() {
 function install_h8mail() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing h8mail"
-    pipx install --system-site-packages h8mail
+    uv tool install h8mail
     add-history h8mail
     add-test-command "h8mail --help"
     add-to-list "h8mail,https://github.com/khast3x/h8mail,Email OSINT and breach hunting."
@@ -158,9 +164,9 @@ function install_pwnedornot() {
     colorecho "Installing pwnedornot"
     git -C /opt/tools/ clone --depth 1 https://github.com/thewhiteh4t/pwnedOrNot
     cd /opt/tools/pwnedOrNot || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install requests html2text
+    uv pip install requests html2text
     deactivate
     mkdir -p "$HOME/.config/pwnedornot"
     cp config.json "$HOME/.config/pwnedornot/config.json"
@@ -192,7 +198,7 @@ function install_phoneinfoga() {
 function install_maigret() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing maigret"
-    pipx install --system-site-packages git+https://github.com/soxoj/maigret.git
+    uv tool install git+https://github.com/soxoj/maigret.git
     add-history maigret
     add-test-command "maigret --help"
     add-to-list "maigret,https://github.com/soxoj/maigret,Collects information about a target email (or domain) from Google and Bing search results"
@@ -202,9 +208,9 @@ function install_linkedin2username() {
     colorecho "Installing linkedin2username"
     git -C /opt/tools/ clone --depth 1 https://github.com/initstring/linkedin2username
     cd /opt/tools/linkedin2username || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
+    uv pip install -r requirements.txt
     deactivate
     add-aliases linkedin2username
     add-history linkedin2username
@@ -215,7 +221,7 @@ function install_linkedin2username() {
 function install_toutatis() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing toutatis"
-    pipx install --system-site-packages git+https://github.com/megadose/toutatis
+    uv tool install git+https://github.com/megadose/toutatis
     add-history toutatis
     add-test-command "toutatis --help"
     add-to-list "toutatis,https://github.com/megadose/Toutatis,Toutatis is a tool that allows you to extract information from instagrams accounts such as e-mails / phone numbers and more."
@@ -235,9 +241,9 @@ function install_carbon14() {
     colorecho "Installing Carbon14"
     git -C /opt/tools/ clone --depth 1 https://github.com/Lazza/Carbon14
     cd /opt/tools/Carbon14 || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
+    uv pip install -r requirements.txt
     deactivate
     add-aliases carbon14
     add-history carbon14
@@ -249,9 +255,9 @@ function install_photon() {
     colorecho "Installing photon"
     git -C /opt/tools/ clone --depth 1 https://github.com/s0md3v/photon
     cd /opt/tools/photon || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
+    uv pip install -r requirements.txt
     deactivate
     add-aliases photon
     add-history photon
@@ -301,9 +307,9 @@ function install_spiderfoot() {
     colorecho "Installing Spiderfoot"
     git -C /opt/tools/ clone --depth 1 https://github.com/smicallef/spiderfoot
     cd /opt/tools/spiderfoot || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
+    uv pip install -r requirements.txt
     deactivate
     add-aliases spiderfoot
     add-history spiderfoot
@@ -316,11 +322,11 @@ function install_finalrecon() {
     colorecho "Installing FinalRecon"
     git -C /opt/tools/ clone --depth 1 https://github.com/thewhiteh4t/FinalRecon
     cd /opt/tools/FinalRecon || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
+    uv pip install -r requirements.txt
     # https://github.com/ThePorgs/Exegol-images/issues/372
-    pip3 install aiodns
+    uv pip install aiodns
     deactivate
     add-aliases finalrecon
     add-history finalrecon
@@ -331,9 +337,7 @@ function install_finalrecon() {
 function install_osrframework() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing osrframework"
-    pipx install --system-site-packages osrframework
-    pipx inject osrframework 'urllib3<2'
-    pipx inject osrframework 'pip==21.2'
+    uv tool install osrframework --with 'urllib3<2'
     add-history osrframework
     add-test-command "osrframework-cli --help"
     add-to-list "osrframework,https://github.com/i3visio/osrframework,Include references to a bunch of different applications related to username checking / DNS lookups / information leaks research / deep web search / regular expressions extraction and many others."
@@ -343,10 +347,10 @@ function install_pwndb() {
     colorecho "Installing pwndb"
     git -C /opt/tools/ clone --depth 1 https://github.com/davidtavarez/pwndb.git
     cd /opt/tools/pwndb || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
-    pip3 install -U pysocks
+    uv pip install -r requirements.txt
+    uv pip install -U pysocks
     deactivate
     add-aliases pwndb
     add-history pwndb
@@ -368,9 +372,9 @@ function install_recondog() {
     colorecho "Installing ReconDog"
     git -C /opt/tools/ clone --depth 1 https://github.com/s0md3v/ReconDog
     cd /opt/tools/ReconDog/ || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
+    uv pip install -r requirements.txt
     deactivate
     add-aliases recondog
     add-history recondog
@@ -391,7 +395,7 @@ function install_gron() {
 function install_ignorant() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing ignorant"
-    pipx install --system-site-packages git+https://github.com/megadose/ignorant
+    uv tool install git+https://github.com/megadose/ignorant
     add-history ignorant
     add-test-command "ignorant --help"
     add-to-list "ignorant,https://github.com/megadose/ignorant,holehe but for phone numbers."
@@ -404,7 +408,7 @@ function install_trevorspray() {
     cd /opt/tools/TREVORspray || exit
     # https://github.com/blacklanternsecurity/TREVORspray/pull/27
     sed -i "s/1.0.5/1.0.4/" pyproject.toml
-    pipx install --system-site-packages .
+    uv tool install .
     add-history trevorspray
     add-test-command "trevorspray --help"
     add-to-list "trevorspray,https://github.com/blacklanternsecurity/TREVORspray,TREVORspray is a modular password sprayer with threading SSH proxying loot modules / and more"
@@ -414,7 +418,7 @@ function install_gitfive() {
     # CODE-CHECK-WHITELIST=add-aliases,add-history
     # GitFive only works with Python 3.10+.
     colorecho "Installing GitFive"
-    pipx install --system-site-packages git+https://github.com/mxrch/GitFive
+    uv tool install git+https://github.com/mxrch/GitFive
     add-test-command "gitfive --help"
     add-to-list "GitFive,https://github.com/mxrch/GitFive,GitFive is an OSINT tool to investigate GitHub profiles."
 }
@@ -424,9 +428,9 @@ function install_geopincer() {
     git -C /opt/tools clone --depth 1 https://github.com/tloja/GeoPincer.git
     cd /opt/tools/GeoPincer || exit
     sed -i "s#regions.txt#/opt/tools/GeoPincer/regions.txt##" GeoPincer.py
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
+    uv pip install -r requirements.txt
     deactivate
     add-aliases geopincer
     add-history geopincer
@@ -450,9 +454,9 @@ function install_murmurhash() {
     colorecho "Installing MurMurHash"
     git -C /opt/tools clone --depth 1 https://github.com/QU35T-code/MurMurHash
     cd /opt/tools/MurMurHash || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
+    uv pip install -r requirements.txt
     deactivate
     add-aliases MurMurHash
     add-history MurMurHash
@@ -466,9 +470,9 @@ function install_blackbird() {
     cd /opt/tools/blackbird || exit
     sed -i "s#data.json#/opt/tools/blackbird/data.json#" blackbird.py
     sed -i "s#useragents.txt#/opt/tools/blackbird/useragents.txt#" blackbird.py
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
+    uv pip install -r requirements.txt
     deactivate
     add-aliases blackbird
     add-history blackbird
@@ -479,7 +483,7 @@ function install_blackbird() {
 function install_sherlock() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing Sherlock"
-    pipx install --system-site-packages sherlock-project
+    uv tool install sherlock-project
     add-history sherlock
     add-test-command "sherlock --help"
     add-to-list "Sherlock,https://github.com/sherlock-project/sherlock,Hunt down social media accounts by username across social networks."
@@ -488,7 +492,7 @@ function install_sherlock() {
 function install_censys() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing Censys"
-    pipx install --system-site-packages censys
+    uv tool install censys
     add-history censys
     add-test-command "censys --help"
     add-to-list "Censys,https://github.com/censys/censys-python,An easy-to-use and lightweight API wrapper for Censys APIs"
@@ -512,10 +516,10 @@ function install_pymeta() {
   fapt exiftool
   git -C /opt/tools clone --depth 1 https://github.com/m8sec/pymeta
   cd /opt/tools/pymeta || exit
-  python3 -m venv --system-site-packages ./venv
+  uv venv --python 3.11 --seed ./venv
   source ./venv/bin/activate
-  pip3 install .
-  pip3 install -r requirements.txt
+  uv pip install .
+  uv pip install -r requirements.txt
   deactivate
   ln -v -s /opt/tools/pymeta/venv/bin/pymeta /opt/tools/bin/
   add-history pymeta
@@ -523,55 +527,56 @@ function install_pymeta() {
   add-to-list "pymeta,https://github.com/m8sec/pymeta,Google and Bing scraping osint tool"
 }
 
-# Package dedicated to osint, recon and passive tools
 function package_osint() {
     set_env
+    init_failure_tracking
     local start_time
     local end_time
     start_time=$(date +%s)
-    install_osint_apt_tools
-    install_youtubedl               # Command-line program to download videos from YouTube.com and other video sites
-    install_sublist3r               # Fast subdomains enumeration tool
-    install_assetfinder             # Find domains and subdomains potentially related to a given domain
-    install_subfinder               # Subfinder is a subdomain discovery tool that discovers valid subdomains for websites
-    install_findomain               # Findomain Monitoring Service use OWASP Amass, Sublist3r, Assetfinder and Subfinder
-    install_holehe                  # Check if the mail is used on different sites
-    install_simplyemail             # Gather emails
-    install_theharvester            # Gather emails, subdomains, hosts, employee names, open ports and banners
-    install_h8mail                  # Email OSINT & Password breach hunting tool
+    safe_install osint install_osint_apt_tools
+    safe_install osint install_youtubedl               # Command-line program to download videos from YouTube.com and other video sites
+    safe_install osint install_sublist3r               # Fast subdomains enumeration tool
+    safe_install osint install_assetfinder             # Find domains and subdomains potentially related to a given domain
+    safe_install osint install_subfinder               # Subfinder is a subdomain discovery tool that discovers valid subdomains for websites
+    safe_install osint install_findomain               # Findomain Monitoring Service use OWASP Amass, Sublist3r, Assetfinder and Subfinder
+    safe_install osint install_holehe                  # Check if the mail is used on different sites
+    safe_install osint install_simplyemail             # Gather emails
+    safe_install osint install_theharvester            # Gather emails, subdomains, hosts, employee names, open ports and banners
+    safe_install osint install_h8mail                  # Email OSINT & Password breach hunting tool
     # install_infoga                  # Gathering email accounts informations TODO : 404, it seems the repo has been removed
-    install_pwnedornot              # OSINT Tool for Finding Passwords of Compromised Email Addresses
+    safe_install osint install_pwnedornot              # OSINT Tool for Finding Passwords of Compromised Email Addresses
     # install_ghunt                 # Investigate Google Accounts with emails FIXME: Need python3.10 -> https://github.com/mxrch/GHunt/issues/398
-    install_phoneinfoga             # Advanced information gathering & OSINT framework for phone numbers
-    install_maigret                 # Search pseudos and information about users on many platforms
-    install_linkedin2username       # Generate username lists for companies on LinkedIn
-    install_toutatis                # Toutatis is a tool that allows you to extract information from instagrams accounts
-    install_waybackurls             # Website history
-    install_carbon14                # OSINT tool for estimating when a web page was written
-    install_photon                  # Incredibly fast crawler designed for OSINT.
-    install_ipinfo                  # Get information about an IP address using command line with ipinfo.io
-    install_constellation           # A graph-focused data visualisation and interactive analysis application.
-    install_maltego                 # Maltego is a software used for open-source intelligence and forensics
-    install_spiderfoot              # SpiderFoot automates OSINT collection
-    install_finalrecon              # A fast and simple python script for web reconnaissance
-    install_osrframework            # OSRFramework, the Open Sources Research Framework
+    safe_install osint install_phoneinfoga             # Advanced information gathering & OSINT framework for phone numbers
+    safe_install osint install_maigret                 # Search pseudos and information about users on many platforms
+    safe_install osint install_linkedin2username       # Generate username lists for companies on LinkedIn
+    safe_install osint install_toutatis                # Toutatis is a tool that allows you to extract information from instagrams accounts
+    safe_install osint install_waybackurls             # Website history
+    safe_install osint install_carbon14                # OSINT tool for estimating when a web page was written
+    safe_install osint install_photon                  # Incredibly fast crawler designed for OSINT.
+    safe_install osint install_ipinfo                  # Get information about an IP address using command line with ipinfo.io
+    safe_install osint install_constellation           # A graph-focused data visualisation and interactive analysis application.
+    safe_install osint install_maltego                 # Maltego is a software used for open-source intelligence and forensics
+    safe_install osint install_spiderfoot              # SpiderFoot automates OSINT collection
+    safe_install osint install_finalrecon              # A fast and simple python script for web reconnaissance
+    safe_install osint install_osrframework            # OSRFramework, the Open Sources Research Framework
     # install_torbrowser            # Tor browser FIXME: Github project ?
     # configure_tor
-    install_pwndb					# No need to say more, no ? Be responsible with this tool please !
-    install_githubemail             # Retrieve a GitHub user's email even if it's not public
-    install_recondog                # Informations gathering tool
-    install_gron                    # JSON parser
-    install_ignorant                # holehe but for phone numbers
-    install_trevorspray             # modular password sprayer with threading, SSH proxying, loot modules, and more!
+    safe_install osint install_pwndb					# No need to say more, no ? Be responsible with this tool please !
+    safe_install osint install_githubemail             # Retrieve a GitHub user's email even if it's not public
+    safe_install osint install_recondog                # Informations gathering tool
+    safe_install osint install_gron                    # JSON parser
+    safe_install osint install_ignorant                # holehe but for phone numbers
+    safe_install osint install_trevorspray             # modular password sprayer with threading, SSH proxying, loot modules, and more!
     # install_gitfive               # TODO : only works with python3.10+
-    install_geopincer               # GeoPincer is a script that leverages OpenStreetMap's Overpass API in order to search for locations
-    install_yalis                   # Yet Another LinkedIn Scraper
-    install_murmurhash              # Little tool is to calculate a MurmurHash value
+    safe_install osint install_geopincer               # GeoPincer is a script that leverages OpenStreetMap's Overpass API in order to search for locations
+    safe_install osint install_yalis                   # Yet Another LinkedIn Scraper
+    safe_install osint install_murmurhash              # Little tool is to calculate a MurmurHash value
     #install_blackbird              Skipping install because of https://github.com/p1ngul1n0/blackbird/issues/119 # OSINT tool to search fast for accounts by username
-    install_sherlock                # Hunt down social media accounts by username across social networks
-    install_censys                  # An easy-to-use and lightweight API wrapper for Censys APIs
-    install_gomapenum               # Nothing new but existing techniques are brought together in one tool.
-    install_pymeta
+    safe_install osint install_sherlock                # Hunt down social media accounts by username across social networks
+    safe_install osint install_censys                  # An easy-to-use and lightweight API wrapper for Censys APIs
+    safe_install osint install_gomapenum               # Nothing new but existing techniques are brought together in one tool.
+    safe_install osint install_pymeta
+    print_failure_summary
     post_install
     end_time=$(date +%s)
     local elapsed_time=$((end_time - start_time))

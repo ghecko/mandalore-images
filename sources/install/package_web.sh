@@ -44,7 +44,7 @@ function install_anew() {
 function install_arjun() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing arjun"
-    pipx install --system-site-packages arjun
+    uv tool install arjun
     add-history arjun
     add-test-command "arjun --help"
     add-to-list "arjun,https://github.com/s0md3v/Arjun,HTTP parameter discovery suite."
@@ -53,7 +53,7 @@ function install_arjun() {
 function install_bbot() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing BBOT"
-    pipx install --system-site-packages bbot
+    uv tool install bbot
     add-history bbot
     add-test-command "bbot --help"
     add-to-list "BBOT,https://github.com/blacklanternsecurity/bbot,BEE·bot is a multipurpose scanner inspired by Spiderfoot built to automate your Recon and ASM."
@@ -63,9 +63,9 @@ function install_bolt() {
     colorecho "Installing Bolt"
     git -C /opt/tools/ clone --depth 1 https://github.com/s0md3v/Bolt.git
     cd /opt/tools/Bolt || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
+    uv pip install -r requirements.txt
     deactivate
     add-aliases bolt
     add-history bolt
@@ -125,9 +125,9 @@ function install_cloudfail() {
     colorecho "Installing CloudFail"
     git -C /opt/tools/ clone --depth 1 https://github.com/m0rtem/CloudFail
     cd /opt/tools/CloudFail || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
+    uv pip install -r requirements.txt
     deactivate
     add-aliases cloudfail
     add-history cloudfail
@@ -139,9 +139,9 @@ function install_corscanner() {
     colorecho "Installing CORScanner"
     git -C /opt/tools/ clone --depth 1 https://github.com/chenjj/CORScanner.git
     cd /opt/tools/CORScanner || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
+    uv pip install -r requirements.txt
     deactivate
     add-aliases corscanner
     add-history corscanner
@@ -152,7 +152,7 @@ function install_corscanner() {
 function install_droopescan() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing droopescan"
-    pipx install --system-site-packages git+https://github.com/droope/droopescan.git
+    uv tool install git+https://github.com/droope/droopescan.git
     add-history droopescan
     add-test-command "droopescan --help"
     add-to-list "droopescan,https://github.com/droope/droopescan,Scan Drupal websites for vulnerabilities."
@@ -162,7 +162,7 @@ function install_eyewitness() {
     colorecho "Installing EyeWitness"
     git -C /opt/tools/ clone --depth 1 https://github.com/FortyNorthSecurity/EyeWitness
     cd /opt/tools/EyeWitness || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
     ./setup/setup.sh
     deactivate
@@ -213,9 +213,9 @@ function install_fuxploider() {
     colorecho "Installing fuxploider"
     git -C /opt/tools/ clone --depth 1 https://github.com/almandin/fuxploider.git
     cd /opt/tools/fuxploider || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
+    uv pip install -r requirements.txt
     deactivate
     add-aliases fuxploider
     add-history fuxploider
@@ -236,7 +236,7 @@ function install_gau() {
 function install_git-dumper() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing git-dumper"
-    pipx install --system-site-packages git-dumper
+    uv tool install git-dumper
     add-history git-dumper
     add-test-command "git-dumper --help"
     add-to-list "git-dumper,https://github.com/arthaud/git-dumper,Small script to dump a Git repository from a website."
@@ -246,9 +246,9 @@ function install_gittools() {
     colorecho "Installing GitTools"
     git -C /opt/tools/ clone --depth 1 https://github.com/internetwache/GitTools.git
     cd /opt/tools/GitTools/Finder || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
+    uv pip install -r requirements.txt
     deactivate
     add-aliases gittools
     add-history gittools
@@ -272,7 +272,7 @@ function install_gopherus() {
     colorecho "Installing gopherus"
     git -C /opt/tools/ clone --depth 1 https://github.com/tarunkant/Gopherus
     cd /opt/tools/Gopherus || exit
-    virtualenv --python python2 ./venv
+    python2 -m virtualenv --python python2 ./venv
     source ./venv/bin/activate
     pip2 install argparse requests
     deactivate
@@ -297,9 +297,9 @@ function install_h2csmuggler() {
     colorecho "Installing h2csmuggler"
     git -C /opt/tools/ clone --depth 1 https://github.com/BishopFox/h2csmuggler
     cd /opt/tools/h2csmuggler || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install h2
+    uv pip install h2
     deactivate
     add-aliases h2csmuggler
     add-history h2csmuggler
@@ -321,9 +321,9 @@ function install_httpmethods() {
     colorecho "Installing httpmethods"
     git -C /opt/tools/ clone --depth 1 https://github.com/ShutdownRepo/httpmethods
     cd /opt/tools/httpmethods || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
+    uv pip install -r requirements.txt
     deactivate
     add-aliases httpmethods
     add-history httpmethods
@@ -374,9 +374,9 @@ function install_jwt_tool() {
     colorecho "Installing JWT tool"
     git -C /opt/tools/ clone --depth 1 https://github.com/ticarpi/jwt_tool
     cd /opt/tools/jwt_tool || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
+    uv pip install -r requirements.txt
     # Running the tool to create the initial configuration and force it to returns 0
     python3 jwt_tool.py || :
     deactivate
@@ -434,9 +434,9 @@ function install_kraken() {
     colorecho "Installing Kraken"
     git -C /opt/tools clone --depth 1 --recursive --shallow-submodules https://github.com/kraken-ng/Kraken.git
     cd /opt/tools/Kraken || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
+    uv pip install -r requirements.txt
     deactivate
     add-aliases kraken
     add-history kraken
@@ -448,9 +448,9 @@ function install_linkfinder() {
     colorecho "Installing LinkFinder"
     git -C /opt/tools/ clone --depth 1 https://github.com/GerbenJavado/LinkFinder.git
     cd /opt/tools/LinkFinder || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
+    uv pip install -r requirements.txt
     deactivate
     add-aliases linkfinder
     add-history linkfinder
@@ -474,9 +474,9 @@ function install_moodlescan() {
     colorecho "Installing moodlescan"
     git -C /opt/tools/ clone --depth 1 https://github.com/inc0d3/moodlescan.git
     cd /opt/tools/moodlescan || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
+    uv pip install -r requirements.txt
     deactivate
     cd /opt/tools/moodlescan || exit
     # updating moodlescan database
@@ -503,7 +503,7 @@ function install_nosqlmap() {
     colorecho "Installing NoSQLMap"
     git -C /opt/tools clone --depth 1 https://github.com/codingo/NoSQLMap.git
     cd /opt/tools/NoSQLMap || exit
-    virtualenv --python python2 ./venv
+    python2 -m virtualenv --python python2 ./venv
     # Requests >= 2.32 requires at least python 3.8 
     local temp_fix_limit="2026-04-01"
     if check_temp_fix_expiry "$temp_fix_limit"; then
@@ -535,9 +535,9 @@ function install_oneforall() {
     colorecho "Installing OneForAll"
     git -C /opt/tools/ clone --depth 1 https://github.com/shmilylty/OneForAll.git
     cd /opt/tools/OneForAll || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
+    uv pip install -r requirements.txt
     deactivate
     add-aliases oneforall
     add-history oneforall
@@ -550,9 +550,11 @@ function install_patator() {
     fapt libmariadb-dev libcurl4-openssl-dev libssl-dev ldap-utils libpq-dev ike-scan unzip default-jdk libsqlite3-dev libsqlcipher-dev
     git -C /opt/tools clone --depth 1 https://github.com/lanjelot/patator.git
     cd /opt/tools/patator || exit
-    python3.13 -m venv --system-site-packages ./venv
+    uv venv --python 3.13 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
+    # Fix for cx_Oracle build failure (missing pkg_resources)
+    uv pip install setuptools wheel
+    uv pip install --no-build-isolation -r requirements.txt
     deactivate
     add-aliases patator
     add-history patator
@@ -599,7 +601,7 @@ function install_jdwp_shellifier(){
 function install_robotstester() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing Robotstester"
-    pipx install --system-site-packages git+https://github.com/p0dalirius/robotstester
+    uv tool install git+https://github.com/p0dalirius/robotstester
     add-history robotstester
     add-test-command "robotstester --help"
     add-to-list "robotstester,https://github.com/p0dalirius/robotstester,Utility for testing whether a website's robots.txt file is correctly configured."
@@ -610,6 +612,19 @@ function install_soapui() {
     mkdir -p /opt/tools/SoapUI/
     wget https://dl.eviware.com/soapuios/5.7.0/SoapUI-5.7.0-linux-bin.tar.gz -O /tmp/SoapUI.tar.gz
     tar xvf /tmp/SoapUI.tar.gz -C /opt/tools/SoapUI/ --strip=1
+
+    # Fix for ARM64: Replace bundled x86_64 JavaFX libs with AArch64 ones
+    if [[ $(uname -m) = 'aarch64' ]]; then
+        colorecho "Fixing SoapUI for ARM64..."
+        # Gluon OpenJFX 17 ARM64 builds are restricted/unavailable directly.
+        # Using BellSoft Liberica JDK 17 Full which bundles JavaFX for ARM64.
+        wget https://download.bell- sw.com/java/17.0.10+13/bellsoft-jdk17.0.10+13-linux-aarch64-full.tar.gz -O /tmp/liberica.tar.gz
+        tar xvf /tmp/liberica.tar.gz -C /tmp/
+        # Copy JavaFX jars from Liberica to SoapUI
+        # Liberica structure: jdk-17.0.10-full/lib/
+        yes | cp -rf /tmp/jdk-17.0.10-full/lib/javafx*.jar /opt/tools/SoapUI/lib/
+        rm -rf /tmp/liberica.tar.gz /tmp/jdk-17.0.10-full
+    fi
     add-aliases soapui
     add-history soapui
     add-test-command "/opt/tools/SoapUI/bin/testrunner.sh"
@@ -642,9 +657,9 @@ function install_ssrfmap() {
     colorecho "Installing SSRFmap"
     git -C /opt/tools/ clone --depth 1 https://github.com/swisskyrepo/SSRFmap
     cd /opt/tools/SSRFmap || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
+    uv pip install -r requirements.txt
     deactivate
     add-aliases ssrfmap
     add-history ssrfmap
@@ -677,7 +692,7 @@ function install_timing_attack() {
 function install_token_exploiter() {
     # CODE-CHECK-WHITELIST=add-aliases,add-history
     colorecho "Installing Token Exploiter"
-    pipx install --system-site-packages git+https://github.com/psyray/token-exploiter
+    uv tool install git+https://github.com/psyray/token-exploiter
     add-test-command "token-exploiter --help"
     add-to-list "token-exploiter,https://github.com/psyray/token-exploiter,Token Exploiter is a tool designed to analyze GitHub Personal Access Tokens."
 }
@@ -686,9 +701,9 @@ function install_tomcatwardeployer() {
     colorecho "Installing tomcatWarDeployer"
     git -C /opt/tools/ clone --depth 1 https://github.com/mgeeky/tomcatWarDeployer.git
     cd /opt/tools/tomcatWarDeployer || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
+    uv pip install -r requirements.txt
     deactivate
     add-aliases tomcatwardeployer
     add-history tomcatwardeployer
@@ -699,7 +714,7 @@ function install_tomcatwardeployer() {
 function install_updog() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing updog"
-    pipx install --system-site-packages updog
+    uv tool install updog
     add-history updog
     add-test-command "updog --help"
     add-to-list "updog,https://github.com/sc0tfree/updog,Simple replacement for Python's SimpleHTTPServer."
@@ -708,7 +723,7 @@ function install_updog() {
 function install_wafw00f() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing wafw00f"
-    pipx install --system-site-packages wafw00F
+    uv tool install wafw00F
     add-history wafw00f
     add-test-command "wafw00f --help"
     add-to-list "wafw00f,https://github.com/EnableSecurity/wafw00f,a Python tool that helps to identify and fingerprint web application firewall (WAF) products."
@@ -764,7 +779,7 @@ function install_xspear() {
     gem install XSpear
     rvm use 3.2.2@default
     add-aliases Xspear
-    add-history xspear
+    add-history XSpear
     add-test-command "XSpear --help"
     add-to-list "XSpear,https://github.com/hahwul/XSpear,a powerful XSS scanning and exploitation tool."
 }
@@ -772,7 +787,7 @@ function install_xspear() {
 function install_xsrfprobe() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing XSRFProbe"
-    pipx install --system-site-packages git+https://github.com/0xInfection/XSRFProbe
+    uv tool install git+https://github.com/0xInfection/XSRFProbe
     add-history xsrfprobe
     add-test-command "xsrfprobe --help"
     add-to-list "xsrfprobe,https://github.com/0xInfection/XSRFProbe,a tool for detecting and exploiting Cross-Site Request Forgery (CSRF) vulnerabilities"
@@ -782,9 +797,9 @@ function install_xsser() {
     colorecho "Installing xsser"
     git -C /opt/tools clone --depth 1 https://github.com/epsylon/xsser.git
     cd /opt/tools/xsser || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install pycurl bs4 pygeoip gobject cairocffi selenium
+    uv pip install pycurl bs4 pygeoip gobject cairocffi selenium
     deactivate
     add-aliases xsser
     add-history xsser
@@ -796,9 +811,9 @@ function install_xsstrike() {
     colorecho "Installing XSStrike"
     git -C /opt/tools/ clone --depth 1 https://github.com/s0md3v/XSStrike.git
     cd /opt/tools/XSStrike || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
+    uv pip install -r requirements.txt
     deactivate
     add-aliases xsstrike
     add-history xsstrike
@@ -820,75 +835,77 @@ function install_ysoserial() {
 # Package dedicated to applicative and active web pentest tools
 function package_web() {
     set_env
+    init_failure_tracking
     local start_time
     local end_time
     start_time=$(date +%s)
-    install_web_apt_tools
-    install_amass                   # Web fuzzer
-    install_anew                    # A tool for adding new lines to files, skipping duplicates
-    install_arjun                   # HTTP Parameter Discovery
-    install_bbot                    # Recursive Scanner
-    install_bolt                    # CSRF scanner
-    install_caido
-    install_cloudfail               # Cloudflare misconfiguration detector
-    install_corscanner              # CORS misconfiguration detector
-    install_droopescan              # Drupal scanner
-    install_eyewitness              # Website screenshoter
-    install_feroxbuster             # ffuf but with multithreaded recursion
-    install_ffuf                    # Web fuzzer (little favorites)
-    install_fuxploider              # File upload scanner
-    install_gau                     # fetches known URLs from AlienVault's Open Threat Exchange, the Wayback Machine, Common Crawl, and URLScan
-    install_git-dumper              # Dump a git repository from a website
+    safe_install web install_web_apt_tools
+    safe_install web install_amass                   # Web fuzzer
+    safe_install web install_anew                    # A tool for adding new lines to files, skipping duplicates
+    safe_install web install_arjun                   # HTTP Parameter Discovery
+    safe_install web install_bbot                    # Recursive Scanner
+    safe_install web install_bolt                    # CSRF scanner
+    safe_install web install_caido
+    safe_install web install_cloudfail               # Cloudflare misconfiguration detector
+    safe_install web install_corscanner              # CORS misconfiguration detector
+    safe_install web install_droopescan              # Drupal scanner
+    safe_install web install_eyewitness              # Website screenshoter
+    safe_install web install_feroxbuster             # ffuf but with multithreaded recursion
+    safe_install web install_ffuf                    # Web fuzzer (little favorites)
+    safe_install web install_fuxploider              # File upload scanner
+    safe_install web install_gau                     # fetches known URLs from AlienVault's Open Threat Exchange, the Wayback Machine, Common Crawl, and URLScan
+    safe_install web install_git-dumper              # Dump a git repository from a website
     # install_gitrob                # Senstive files reconnaissance in github #FIXME: Go version too old ?
-    install_gittools                # Dump a git repository from a website
-    install_gobuster                # Web fuzzer (pretty good for several extensions)
-    install_gopherus                # SSRF helper
-    install_gowitness               # Web screenshot utility
-    install_h2csmuggler             # Tool for HTTP2 smuggling
-    install_hakrevdns               # Reverse DNS lookups
-    install_httpmethods             # Tool for HTTP methods enum & verb tampering
-    install_httprobe                # Probe http
-    install_httpx                   # Probe http
-    install_jdwp_shellifier         # exploit java debug
-    install_joomscan                # Joomla scanner
-    install_jsluice                 # Extract URLs, paths, secrets, and other interesting data from JavaScript source code
-    install_jwt_tool                # Toolkit for validating, forging, scanning and tampering JWTs
-    install_kadimus                 # LFI scanner
-    install_katana                  # A next-generation crawling and spidering framework
-    install_kiterunner              # Web fuzzer (fast and pretty good for api bruteforce)
-    install_kraken                  # Kraken is a modular multi-language webshell.
-    install_linkfinder              # Discovers endpoint JS files
-    install_massdns                 # DNS resolver (Needed for shuffledns)
-    install_moodlescan              # Moodle scanner
-    install_naabu                   # Fast port scanner
-    install_nosqlmap                # NoSQL scanner
-    install_nuclei                  # Vulnerability scanner - Needed for gau install
-    install_oneforall               # OneForAll is a powerful subdomain integration tool
-    install_patator                 # Login scanner
-    install_php_filter_chain_generator # A CLI to generate PHP filters chain and get your RCE
-    install_phpggc                  # php deserialization payloads
-    install_robotstester            # Robots.txt scanner
-    install_soapui                  # SoapUI is an open-source web service testing application for SOAP and REST
-    install_sqlmap                  # SQL injection scanner
-    install_sslscan                 # SSL/TLS scanner
+    safe_install web install_gittools                # Dump a git repository from a website
+    safe_install web install_gobuster                # Web fuzzer (pretty good for several extensions)
+    safe_install web install_gopherus                # SSRF helper
+    safe_install web install_gowitness               # Web screenshot utility
+    safe_install web install_h2csmuggler             # Tool for HTTP2 smuggling
+    safe_install web install_hakrevdns               # Reverse DNS lookups
+    safe_install web install_httpmethods             # Tool for HTTP methods enum & verb tampering
+    safe_install web install_httprobe                # Probe http
+    safe_install web install_httpx                   # Probe http
+    safe_install web install_jdwp_shellifier         # exploit java debug
+    safe_install web install_joomscan                # Joomla scanner
+    safe_install web install_jsluice                 # Extract URLs, paths, secrets, and other interesting data from JavaScript source code
+    safe_install web install_jwt_tool                # Toolkit for validating, forging, scanning and tampering JWTs
+    safe_install web install_kadimus                 # LFI scanner
+    safe_install web install_katana                  # A next-generation crawling and spidering framework
+    safe_install web install_kiterunner              # Web fuzzer (fast and pretty good for api bruteforce)
+    safe_install web install_kraken                  # Kraken is a modular multi-language webshell.
+    safe_install web install_linkfinder              # Discovers endpoint JS files
+    safe_install web install_massdns                 # DNS resolver (Needed for shuffledns)
+    safe_install web install_moodlescan              # Moodle scanner
+    safe_install web install_naabu                   # Fast port scanner
+    safe_install web install_nosqlmap                # NoSQL scanner
+    safe_install web install_nuclei                  # Vulnerability scanner - Needed for gau install
+    safe_install web install_oneforall               # OneForAll is a powerful subdomain integration tool
+    safe_install web install_patator                 # Login scanner
+    safe_install web install_php_filter_chain_generator # A CLI to generate PHP filters chain and get your RCE
+    safe_install web install_phpggc                  # php deserialization payloads
+    safe_install web install_robotstester            # Robots.txt scanner
+    safe_install web install_soapui                  # SoapUI is an open-source web service testing application for SOAP and REST
+    safe_install web install_sqlmap                  # SQL injection scanner
+    safe_install web install_sslscan                 # SSL/TLS scanner
     # install_sslyze                # SSL/TLS scanner FIXME: Only AMD ?
-    install_ssrfmap                 # SSRF scanner
-    install_symfony-exploits        # symfony secret fragments exploit
-    install_testssl                 # SSL/TLS scanner
-    install_timing_attack           # Cryptocraphic timing attack
-    install_token_exploiter         # Github personal token Analyzer
-    install_tomcatwardeployer       # Apache Tomcat auto WAR deployment & pwning tool
-    install_updog                   # New HTTPServer
-    install_wafw00f                 # Waf detector
-    install_weevely                 # Weaponized web shell
-    install_whatweb                 # Recognises web technologies including content management
-    install_wpprobe                 # WordPress plugin scanner
-    install_wpscan                  # Wordpress scanner
-    install_xspear                  # XSS scanner
-    install_xsrfprobe               # CSRF scanner
-    install_xsser                   # XSS scanner
-    install_xsstrike                # XSS scanner
-    install_ysoserial               # Deserialization payloads
+    safe_install web install_ssrfmap                 # SSRF scanner
+    safe_install web install_symfony-exploits        # symfony secret fragments exploit
+    safe_install web install_testssl                 # SSL/TLS scanner
+    safe_install web install_timing_attack           # Cryptocraphic timing attack
+    safe_install web install_token_exploiter         # Github personal token Analyzer
+    safe_install web install_tomcatwardeployer       # Apache Tomcat auto WAR deployment & pwning tool
+    safe_install web install_updog                   # New HTTPServer
+    safe_install web install_wafw00f                 # Waf detector
+    safe_install web install_weevely                 # Weaponized web shell
+    safe_install web install_whatweb                 # Recognises web technologies including content management
+    safe_install web install_wpprobe                 # WordPress plugin scanner
+    safe_install web install_wpscan                  # Wordpress scanner
+    safe_install web install_xspear                  # XSS scanner
+    safe_install web install_xsrfprobe               # CSRF scanner
+    safe_install web install_xsser                   # XSS scanner
+    safe_install web install_xsstrike                # XSS scanner
+    safe_install web install_ysoserial               # Deserialization payloads
+    print_failure_summary
     post_install
     end_time=$(date +%s)
     local elapsed_time=$((end_time - start_time))

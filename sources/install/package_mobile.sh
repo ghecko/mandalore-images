@@ -68,7 +68,7 @@ function install_dex2jar() {
 function install_frida() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing frida"
-    pipx install --system-site-packages frida-tools
+    uv tool install frida-tools
     add-history frida
     add-test-command "frida --version"
     add-to-list "frida,https://github.com/frida/frida,Dynamic instrumentation toolkit"
@@ -77,7 +77,7 @@ function install_frida() {
 function install_objection() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing objection"
-    pipx install --system-site-packages git+https://github.com/sensepost/objection
+    uv tool install git+https://github.com/sensepost/objection
     add-history objection
     add-test-command "objection --help"
     add-to-list "objection,https://github.com/sensepost/objection,Runtime mobile exploration"
@@ -86,7 +86,7 @@ function install_objection() {
 function install_androguard() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing androguard"
-    pipx install --system-site-packages git+https://github.com/androguard/androguard
+    uv tool install git+https://github.com/androguard/androguard
     add-history androguard
     add-test-command "androguard --version"
     add-to-list "androguard,https://github.com/androguard/androguard,Reverse engineering and analysis of Android applications"
@@ -96,36 +96,39 @@ function install_mobsf() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing Mobile Security Framework"
     fapt wkhtmltopdf libxmlsec1 libxmlsec1-dev
-    git -C /opt/tools clone --depth 1 https://github.com/MobSF/Mobile-Security-Framework-MobSF MobSF
-    cd /opt/tools/MobSF || exit
-    # pipx --preinstall git+https://github.com/MobSF/yara-python-dex.git /opt/tools/MobSF would be needed for ARM64
-    #  in the mean time, switching to manual venv and an alias for mobsf
-    local temp_fix_limit="2026-04-01"
-    if check_temp_fix_expiry "$temp_fix_limit"; then
-      python3.12 -m venv --system-site-packages ./venv
-      ./venv/bin/python3 -m pip install git+https://github.com/MobSF/yara-python-dex.git
-      ./venv/bin/python3 -m pip install .
-    fi
+    git -C /tmp clone --depth 1 https://github.com/MobSF/Mobile-Security-Framework-MobSF MobSF
+    # yara-python-dex is be needed for ARM64
+    uv tool install /tmp/MobSF --with setuptools --with git+https://github.com/MobSF/yara-python-dex.git --with xmlsec==1.3.14
+    
+    # Use 'command uv' to bypass the wrapper that adds logging to stdout
+    local uv_tool_dir
+    uv_tool_dir=$(command uv tool dir)
+
+    # Line 102 was causing "command not found" due to log pollution and "No such file" due to hardcoded path.
+    # It tried to run settings.py which is not executable. Removing it.
+
     add-aliases mobsf # alias is only needed with venv and can be removed when switching back to pipx
     add-history mobsf
-    add-test-command "/opt/tools/MobSF/venv/bin/python -c 'from mobsf.MobSF.settings import VERSION; print(VERSION)'"
+    add-test-command "$uv_tool_dir/mobsf/bin/python -c 'from mobsf.MobSF.settings import VERSION; print(VERSION)'"
     add-to-list "mobsf,https://github.com/MobSF/Mobile-Security-Framework-MobSF,Automated and all-in-one mobile application (Android/iOS/Windows) pen-testing malware analysis and security assessment framework"
 }
 
 # Package dedicated to mobile apps pentest tools
 function package_mobile() {
     set_env
+    init_failure_tracking
     local start_time
     local end_time
     start_time=$(date +%s)
-    install_mobile_apt_tools
-    install_scrpy
-    install_smali
-    install_dex2jar
-    install_frida
-    install_objection               # Runtime mobile exploration toolkit
-    install_androguard              # Reverse engineering and analysis of Android applications
-    install_mobsf                   # Automated mobile application testing framework
+    safe_install mobile install_mobile_apt_tools
+    safe_install mobile install_scrpy
+    safe_install mobile install_smali
+    safe_install mobile install_dex2jar
+    safe_install mobile install_frida
+    safe_install mobile install_objection               # Runtime mobile exploration toolkit
+    safe_install mobile install_androguard              # Reverse engineering and analysis of Android applications
+    safe_install mobile install_mobsf                   # Automated mobile application testing framework
+    print_failure_summary
     post_install
     end_time=$(date +%s)
     local elapsed_time=$((end_time - start_time))

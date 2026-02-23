@@ -17,7 +17,7 @@ function install_brakeman() {
 function install_semgrep() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing semgrep"
-    pipx install --system-site-packages semgrep
+    uv tool install semgrep
     add-history semgrep
     add-test-command "semgrep --help"
     add-to-list "semgrep,https://github.com/returntocorp/semgrep/,Static analysis tool that supports multiple languages and can find a variety of vulnerabilities and coding errors."
@@ -84,14 +84,16 @@ function install_trufflehog() {
 # Package dedicated to SAST and DAST tools
 function package_code_analysis() {
     set_env
+    init_failure_tracking
     local start_time
     local end_time
     start_time=$(date +%s)
-    install_brakeman		            # Checks Ruby on Rails applications for security vulnerabilities
-    install_semgrep                     # Static analysis engine for finding bugs and vulnerabilities
-    install_pp-finder                   # Prototype pollution finder tool for javascript
-    install_gitleaks
-    install_trufflehog
+    safe_install code_analysis install_brakeman		            # Checks Ruby on Rails applications for security vulnerabilities
+    safe_install code_analysis install_semgrep                     # Static analysis engine for finding bugs and vulnerabilities
+    safe_install code_analysis install_pp-finder                   # Prototype pollution finder tool for javascript
+    safe_install code_analysis install_gitleaks
+    safe_install code_analysis install_trufflehog
+    print_failure_summary
     post_install
     end_time=$(date +%s)
     local elapsed_time=$((end_time - start_time))

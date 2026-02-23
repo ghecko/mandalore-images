@@ -33,3 +33,46 @@ install_ligolo-ng
 ```
 
 This allows you to iterate instantly on syntax or logic errors.
+
+# Build Error Handling
+
+The build system includes resilient error handling to avoid aborting the entire build when individual tools fail.
+
+## How it works
+
+- **Network-only retries**: Commands like `curl`, `wget`, `git`, `pip`, etc. are automatically retried (with exponential backoff) only when the failure is network-related (DNS resolution, timeouts, connection resets...). Non-network failures (compilation errors, missing dependencies...) fail immediately without wasting time on retries.
+- **Skip & log**: When a tool fails for a non-network reason, the build skips it and continues to the next tool. The full output is saved to `/.mandalore/build_failures/<package>__<tool>.log` inside the container.
+- **End-of-build summary**: At the end of each package and at the very end of `post_build`, a summary is printed listing all failed tools per package.
+
+## Retrieving failure information
+
+The failure summary is printed to **stdout** at the end of the build, so it's visible in your terminal. For example, after `make base && make full`, the last lines will show:
+
+```
+╔══════════════════════════════════════════════════╗
+║     GLOBAL BUILD FAILURE SUMMARY                ║
+╠══════════════════════════════════════════════════╣
+║  Total failed tools: 3                           ║
+╚══════════════════════════════════════════════════╝
+
+Package 'ad': 2 tool(s) failed:
+  1. bloodyAD
+  2. certipy
+
+Package 'web': 1 tool(s) failed:
+  1. caido
+```
+
+To retrieve the **detailed per-tool logs** from the built image:
+
+```bash
+# View the summary
+docker run --rm lksec/mandalore-full cat /.mandalore/build_failures/SUMMARY.txt
+
+# Copy all failure logs to your host
+ID=$(docker create lksec/mandalore-full)
+docker cp "$ID:/.mandalore/build_failures" ./build_failures
+docker rm "$ID"
+```
+
+> **Note**: `package_base` does **not** use skip & log — it contains foundational system setup (shell, languages, etc.) where failures should abort the build.

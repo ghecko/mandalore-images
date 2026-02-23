@@ -48,43 +48,45 @@ function install_most_used_apt_tools() {
 # Package dedicated to most used offensive tools
 function package_most_used() {
     set_env
+    init_failure_tracking
     local start_time
     local end_time
     start_time=$(date +%s)
-    install_most_used_apt_tools
-    install_metasploit              # Offensive framework
-    install_nmap                    # Port scanner
-    install_seclists                # Awesome wordlists
-    install_subfinder               # Subdomain bruteforcer
-    install_autorecon               # External recon tool
-    install_waybackurls             # Website history
-    install_theharvester            # Gather emails, subdomains, hosts, employee names, open ports and banners
-    install_simplyemail             # Gather emails
-    install_ffuf                    # Web fuzzer (little favorites)
-    install_joomscan                # Joomla scanner
-    install_wpscan                  # Wordpress scanner
-    install_droopescan              # Drupal scanner
-    install_testssl                 # SSL/TLS scanner
-    install_cloudfail               # Cloudflare misconfiguration detector
-    install_eyewitness              # Website screenshoter
-    install_wafw00f                 # Waf detector
-    install_jwt_tool                # Toolkit for validating, forging, scanning and tampering JWTs
-    install_gittools                # Dump a git repository from a website
-    install_ysoserial               # Deserialization payloads
-    install_responder               # LLMNR, NBT-NS and MDNS poisoner
-    install_impacket                # Network protocols scripts
-    install_enum4linux-ng           # Active Directory enumeration tool, improved Python alternative to enum4linux
-    install_nuclei                  # Vulnerability scanner
-    install_evilwinrm               # WinRM shell
-    install_john                    # Password cracker
-    install_weevely                 # Weaponized web shell
-    install_sqlmap                  # SQL injection scanner
-    install_netexec                 # Crackmapexec repo
-    install_sslscan                 # SSL/TLS scanner
-    install_cyberchef               # A web based toolbox
-    install_proxychains             # Network tool
-    install_neo4j
-    install_coercer                 # Python script to coerce auth through multiple methods
+    safe_install most_used install_most_used_apt_tools
+    safe_install most_used install_metasploit              # Offensive framework
+    safe_install most_used install_nmap                    # Port scanner
+    safe_install most_used install_seclists                # Awesome wordlists
+    safe_install most_used install_subfinder               # Subdomain bruteforcer
+    safe_install most_used install_autorecon               # External recon tool
+    safe_install most_used install_waybackurls             # Website history
+    safe_install most_used install_theharvester            # Gather emails, subdomains, hosts, employee names, open ports and banners
+    safe_install most_used install_simplyemail             # Gather emails
+    safe_install most_used install_ffuf                    # Web fuzzer (little favorites)
+    safe_install most_used install_joomscan                # Joomla scanner
+    safe_install most_used install_wpscan                  # Wordpress scanner
+    safe_install most_used install_droopescan              # Drupal scanner
+    safe_install most_used install_testssl                 # SSL/TLS scanner
+    safe_install most_used install_cloudfail               # Cloudflare misconfiguration detector
+    safe_install most_used install_eyewitness              # Website screenshoter
+    safe_install most_used install_wafw00f                 # Waf detector
+    safe_install most_used install_jwt_tool                # Toolkit for validating, forging, scanning and tampering JWTs
+    safe_install most_used install_gittools                # Dump a git repository from a website
+    safe_install most_used install_ysoserial               # Deserialization payloads
+    safe_install most_used install_responder               # LLMNR, NBT-NS and MDNS poisoner
+    safe_install most_used install_impacket                # Network protocols scripts
+    safe_install most_used install_enum4linux-ng           # Active Directory enumeration tool, improved Python alternative to enum4linux
+    safe_install most_used install_nuclei                  # Vulnerability scanner
+    safe_install most_used install_evilwinrm               # WinRM shell
+    safe_install most_used install_john                    # Password cracker
+    safe_install most_used install_weevely                 # Weaponized web shell
+    safe_install most_used install_sqlmap                  # SQL injection scanner
+    safe_install most_used install_netexec                 # Crackmapexec repo
+    safe_install most_used install_sslscan                 # SSL/TLS scanner
+    safe_install most_used install_cyberchef               # A web based toolbox
+    safe_install most_used install_proxychains             # Network tool
+    safe_install most_used install_neo4j
+    safe_install most_used install_coercer                 # Python script to coerce auth through multiple methods
+    print_failure_summary
     post_install
     end_time=$(date +%s)
     local elapsed_time=$((end_time - start_time))

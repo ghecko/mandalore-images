@@ -36,17 +36,18 @@ function install_binwalk() {
 
 function install_volatility2() {
     colorecho "Installing volatility"
-    fapt pcregrep yara libjpeg-dev zlib1g-dev
+    fapt libjpeg-dev zlib1g-dev
     git -C /opt/tools/ clone --depth 1 https://github.com/volatilityfoundation/volatility
     cd /opt/tools/volatility || exit
-    virtualenv --python python2 ./venv
+    # Use global python2 (from pyenv shim) to create virtualenv
+    python2 -m virtualenv --python python2 ./venv
     source ./venv/bin/activate
-    pip2 install pycryptodome distorm3 pillow openpyxl
+    pip2 install pycryptodome distorm3 pillow openpyxl yara-python
     pip2 install ujson --no-use-pep517
     python2 setup.py install
     deactivate
-    # https://github.com/volatilityfoundation/volatility/issues/535#issuecomment-407571161
-    ln -s /usr/local/lib/python2.7/dist-packages/usr/lib/libyara.so /usr/lib/libyara.so
+    # Symlink removed as it is not needed if yara-python is installed correctly
+    # ln -s /usr/local/lib/python2.7/dist-packages/usr/lib/libyara.so /usr/lib/libyara.so
     add-aliases volatility2
     # TODO: Improve volatility2 history
     add-history volatility2
@@ -56,10 +57,7 @@ function install_volatility2() {
 
 function install_volatility3() {
     colorecho "Installing volatility3"
-    pipx install --system-site-packages git+https://github.com/volatilityfoundation/volatility3
-    # We are using the full path of 'pipx', because otherwise our catch and retry mechanism mess with the command
-    # https://github.com/volatilityfoundation/volatility3/blob/bd5fb7d61148afef031faade3efe68dcb012d95a/pyproject.toml#L23
-    /root/.pyenv/shims/pipx inject volatility3 'yara-python>=4.5.1,<5' 'capstone>=5.0.3,<6' 'pycryptodome>=3.21.0,<4' 'leechcorepyc>=2.19.2,<3; sys_platform != "darwin"' 'pillow>=10.0.0,<11.0.0'
+    uv tool install git+https://github.com/volatilityfoundation/volatility3 --with 'yara-python>=4.5.1,<5' --with 'capstone>=5.0.3,<6' --with 'pycryptodome>=3.21.0,<4' --with 'leechcorepyc>=2.19.2,<3; sys_platform != "darwin"' --with 'pillow>=10.0.0,<11.0.0'
     add-aliases volatility3
     add-history volatility3
     add-test-command "volatility3 --help"
@@ -127,17 +125,19 @@ function install_chainsaw() {
 # Package dedicated to forensic tools
 function package_forensic() {
     set_env
+    init_failure_tracking
     local start_time
     local end_time
     start_time=$(date +%s)
-    install_forensic_apt_tools
-    install_binwalk                 # Tool to find embedded files
-    install_volatility2             # Memory analysis tool
-    install_volatility3             # Memory analysis tool v2
-    install_trid                    # filetype detection tool
-    install_peepdf                  # PDF analysis
-    install_jadx                    # Dex to Java decompiler
-    install_chainsaw                # Rapidly Search and Hunt through Windows Forensic Artefacts
+    safe_install forensic install_forensic_apt_tools
+    safe_install forensic install_binwalk                 # Tool to find embedded files
+    safe_install forensic install_volatility2             # Memory analysis tool (Disabled: requires Python 2)
+    safe_install forensic install_volatility3             # Memory analysis tool v2
+    safe_install forensic install_trid                    # filetype detection tool
+    safe_install forensic install_peepdf                  # PDF analysis
+    safe_install forensic install_jadx                    # Dex to Java decompiler
+    safe_install forensic install_chainsaw                # Rapidly Search and Hunt through Windows Forensic Artefacts
+    print_failure_summary
     post_install
     end_time=$(date +%s)
     local elapsed_time=$((end_time - start_time))

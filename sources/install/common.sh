@@ -33,13 +33,25 @@ function add-to-list() {
 function add-aliases() {
     colorecho "Adding aliases for: $*"
     # Removing add empty lines and the last trailing newline if any, and adding a trailing newline.
-    grep -vE "^\s*$" "/root/sources/assets/shells/aliases.d/$*" | tee -a /opt/.mandalore_aliases
+    local alias_file="/root/sources/assets/shells/aliases.d/$*"
+    if [[ -f "$alias_file" ]]; then
+        grep -vE "^\s*$" "$alias_file" | tee -a /opt/.mandalore_aliases
+    else
+        # Not critical, just warn
+        echo "Alias file not found: $alias_file" | tee -a /.mandalore/missing_assets.log
+    fi
 }
 
 function add-history() {
     colorecho "Adding history commands for: $*"
     # Removing add empty lines and the last trailing newline if any, and adding a trailing newline.
-    grep -vE "^\s*$" "/root/sources/assets/shells/history.d/$*" | tee -a /opt/.mandalore_history
+    local hist_file="/root/sources/assets/shells/history.d/$*"
+    if [[ -f "$hist_file" ]]; then
+        grep -vE "^\s*$" "$hist_file" | tee -a /opt/.mandalore_history
+    else
+        # Not critical, just warn
+        echo "History file not found: $hist_file" | tee -a /.mandalore/missing_assets.log
+    fi
 }
 
 function add-test-command() {
@@ -73,11 +85,10 @@ function set_ruby_env() {
 }
 
 function set_python_env() {
-    colorecho "Setting pyenv environment"
-    # add pyenv to PATH
-    export PATH="/root/.pyenv/bin:$PATH"
-    # add python commands (pyenv shims) to PATH
-    eval "$(pyenv init --path)"
+    colorecho "Setting python environment (uv)"
+    # Add uv tools path
+    export PATH="$HOME/.local/bin:$PATH"
+    # Ensure system python3 is available if needed, but uv should handle venvs
 }
 
 function set_bin_path() {
@@ -112,6 +123,47 @@ function set_env() {
 
 ### Catch & retry definitions
 
+function is_network_error() {
+    # Checks if the given output contains patterns indicating a network-related failure
+    # Returns 0 if network error detected, 1 otherwise
+    local output="$1"
+    local network_patterns=(
+        "Could not resolve host"
+        "Connection refused"
+        "Connection timed out"
+        "Connection reset"
+        "Network is unreachable"
+        "No route to host"
+        "SSL_ERROR"
+        "TLS handshake"
+        "Operation timed out"
+        "Failed to connect"
+        "Temporary failure in name resolution"
+        "server certificate verification failed"
+        "unable to access"
+        "Could not connect to"
+        "transfer closed"
+        "Connection closed"
+        "Recv failure"
+        "Failed connect"
+        "fatal: unable to access"
+        "Error: ENOTFOUND"
+        "Error: ETIMEDOUT"
+        "Error: ECONNRESET"
+        "Error: ECONNREFUSED"
+        "error: could not download"
+        "socket hang up"
+        "Connection was reset"
+        "unable to resolve"
+    )
+    for pattern in "${network_patterns[@]}"; do
+        if echo "$output" | grep -qi "$pattern"; then
+            return 0
+        fi
+    done
+    return 1
+}
+
 function catch_and_retry() {
   local retries=5
   local i
@@ -127,20 +179,35 @@ function catch_and_retry() {
 
   # We use 'command' to bypass the shell function wrapper and call the binary directly
   # This avoids the infinite loop without needing 'sh -c' and complex escaping
-  
+
+  local stderr_file
+  stderr_file=$(mktemp)
+
   for ((i=1; i<=retries; i++)); do
     echo "[MANDALORE DEBUG] $*" >&2
     # If command exits successfully, no need for more retries
-    command "$@" && return 0
-    
+    command "$@" 2> >(tee "$stderr_file" >&2) && { rm -f "$stderr_file"; return 0; }
+
+    local exit_code=$?
+    local captured_stderr
+    captured_stderr=$(cat "$stderr_file")
+
+    # Only retry if this looks like a network error
+    if ! is_network_error "$captured_stderr"; then
+      criticalecho-noexit "Command failed (non-network error, no retry): $*"
+      rm -f "$stderr_file"
+      return $exit_code
+    fi
+
     # Calculate the exponential backoff time
     local wait_time=$((scale_factor * (base_exponent ** i)))
     # Cap it at max_wait_time
     wait_time=$(( wait_time > max_wait_time ? max_wait_time : wait_time ))
-    criticalecho-noexit "Command failed (attempt $i/$retries). Retrying in $wait_time seconds..."
+    criticalecho-noexit "Command failed with network error (attempt $i/$retries). Retrying in $wait_time seconds..."
     sleep "$wait_time"
   done
   criticalecho-noexit "Command failed definitively after $retries attempts."
+  rm -f "$stderr_file"
   return 1
 }
 
@@ -158,6 +225,119 @@ function define_retry_function() {
 for CMD in "${CATCH_AND_RETRY_COMMANDS[@]}"; do
   define_retry_function "$CMD"
 done
+
+### Failure tracking & resilient install
+
+# Directory for failure logs (one file per failed tool)
+MANDALORE_FAIL_LOG_DIR="/.mandalore/build_failures"
+
+# Associative array: package_name -> space-separated list of failed tool names
+declare -A MANDALORE_FAILED_TOOLS
+
+function init_failure_tracking() {
+    mkdir -p "$MANDALORE_FAIL_LOG_DIR"
+    MANDALORE_FAILED_TOOLS=()
+}
+
+function log_tool_failure() {
+    local package_name="$1"
+    local tool_name="$2"
+    local error_log="$3"
+    # Write per-tool failure log file
+    local log_file="${MANDALORE_FAIL_LOG_DIR}/${package_name}__${tool_name}.log"
+    echo "$error_log" > "$log_file"
+    # Track in associative array for the summary
+    MANDALORE_FAILED_TOOLS["$package_name"]+="${tool_name} "
+}
+
+function safe_install() {
+    # Wrapper that runs an install_* function, catches failures,
+    # logs them, and continues the build instead of aborting.
+    # Usage: safe_install <package_name> <install_function> [args...]
+    local package_name="$1"
+    local install_func="$2"
+    shift 2
+    local tool_name="${install_func#install_}"
+
+    colorecho ">>> Installing tool: $tool_name (package: $package_name)"
+
+    local error_log_file
+    error_log_file=$(mktemp)
+    local exit_code
+
+    # Temporarily disable exit-on-error so we can catch failures
+    set +e
+    # Run the command in a subshell with pipefail enabled so the pipeline fails if the command fails.
+    # We pipe stderr to both the log file and the console (via tee /dev/stderr usually, but here we capture to file and cat it).
+    # Wait, tee /dev/stderr causes output to appear on stderr.
+    # Using ( set -o pipefail; command 2>&1 | tee "$error_log_file" ) allows capturing output while still seeing it.
+    ( set -e; set -o pipefail; "$install_func" "$@" 2>&1 | tee "$error_log_file" )
+    exit_code=$?
+    set -e
+
+    if [[ $exit_code -ne 0 ]]; then
+        local error_output
+        error_output=$(cat "$error_log_file")
+        criticalecho-noexit "Tool '$tool_name' FAILED (exit code: $exit_code) — skipping and continuing build"
+        log_tool_failure "$package_name" "$tool_name" "$error_output"
+        rm -f "$error_log_file"
+        return 0  # return 0 so the build continues
+    fi
+
+    rm -f "$error_log_file"
+    colorecho "<<< Tool '$tool_name' installed successfully"
+}
+
+function print_failure_summary() {
+    # Prints a colored summary of all tools that failed during the current package build.
+    # Also writes a summary to the failure log directory.
+    if [[ ${#MANDALORE_FAILED_TOOLS[@]} -eq 0 ]]; then
+        colorecho "All tools installed successfully!"
+        return 0
+    fi
+
+    echo ""
+    echo -e "${RED}╔══════════════════════════════════════════════════╗${NOCOLOR}"
+    echo -e "${RED}║         BUILD FAILURE SUMMARY                   ║${NOCOLOR}"
+    echo -e "${RED}╚══════════════════════════════════════════════════╝${NOCOLOR}"
+
+    local total_failures=0
+    for package in "${!MANDALORE_FAILED_TOOLS[@]}"; do
+        IFS=' ' read -ra tools <<< "${MANDALORE_FAILED_TOOLS[$package]}"
+        local count=${#tools[@]}
+        total_failures=$((total_failures + count))
+        echo ""
+        echo -e "${RED}Package '${package}': ${count} tool(s) failed:${NOCOLOR}"
+        local i=1
+        for tool in "${tools[@]}"; do
+            echo -e "${RED}  ${i}. ${tool}${NOCOLOR}"
+            echo -e "${BLUE}     Log: ${MANDALORE_FAIL_LOG_DIR}/${package}__${tool}.log${NOCOLOR}"
+            ((i++))
+        done
+    done
+
+    echo ""
+    echo -e "${RED}Total: ${total_failures} tool(s) failed across ${#MANDALORE_FAILED_TOOLS[@]} package(s).${NOCOLOR}"
+    echo -e "${BLUE}Detailed logs are in: ${MANDALORE_FAIL_LOG_DIR}/${NOCOLOR}"
+    echo ""
+
+    # Also write a machine-readable summary file
+    local summary_file="${MANDALORE_FAIL_LOG_DIR}/SUMMARY.txt"
+    {
+        echo "=== BUILD FAILURE SUMMARY ==="
+        echo "Date: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+        for package in "${!MANDALORE_FAILED_TOOLS[@]}"; do
+            IFS=' ' read -ra tools <<< "${MANDALORE_FAILED_TOOLS[$package]}"
+            echo ""
+            echo "Package '${package}': ${#tools[@]} tool(s) failed:"
+            local i=1
+            for tool in "${tools[@]}"; do
+                echo "  ${i}. ${tool}"
+                ((i++))
+            done
+        done
+    } >> "$summary_file"
+}
 
 function post_install() {
     # Function used to clean up post-install files
@@ -185,6 +365,40 @@ function post_install() {
     fi
 }
 
+function print_global_failure_summary() {
+    # Prints the accumulated failure summary from ALL packages across the entire build.
+    # This reads the SUMMARY.txt file that was appended to by each package's print_failure_summary.
+    local summary_file="${MANDALORE_FAIL_LOG_DIR}/SUMMARY.txt"
+    if [[ ! -f "$summary_file" ]]; then
+        echo ""
+        echo -e "${GREEN}╔══════════════════════════════════════════════════╗${NOCOLOR}"
+        echo -e "${GREEN}║     ALL TOOLS INSTALLED SUCCESSFULLY             ║${NOCOLOR}"
+        echo -e "${GREEN}╚══════════════════════════════════════════════════╝${NOCOLOR}"
+        echo ""
+        return 0
+    fi
+
+    echo ""
+    echo -e "${RED}╔══════════════════════════════════════════════════╗${NOCOLOR}"
+    echo -e "${RED}║     GLOBAL BUILD FAILURE SUMMARY                ║${NOCOLOR}"
+    echo -e "${RED}╠══════════════════════════════════════════════════╣${NOCOLOR}"
+
+    # Count total failed tools across all log files
+    local total_logs
+    total_logs=$(find "$MANDALORE_FAIL_LOG_DIR" -name '*.log' 2>/dev/null | wc -l)
+    echo -e "${RED}║  Total failed tools: ${total_logs}${NOCOLOR}"
+    echo -e "${RED}╚══════════════════════════════════════════════════╝${NOCOLOR}"
+    echo ""
+
+    # Print the accumulated summary content
+    cat "$summary_file"
+
+    echo ""
+    echo -e "${BLUE}Detailed per-tool logs are in: ${MANDALORE_FAIL_LOG_DIR}/${NOCOLOR}"
+    echo -e "${RED}Review the logs above, fix the broken tools, and rebuild.${NOCOLOR}"
+    echo ""
+}
+
 function post_build() {
     colorecho "Post build..."
     rm -rfv /root/sources
@@ -198,6 +412,8 @@ function post_build() {
     cp /opt/.mandalore_history ~/.bash_history
     colorecho "Removing desktop icons"
     if [ -d "/root/Desktop" ]; then rm -r /root/Desktop; fi
+    # Print the global failure summary as the LAST thing in the build
+    print_global_failure_summary
 }
 
 function check_temp_fix_expiry() {

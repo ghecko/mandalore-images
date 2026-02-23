@@ -39,7 +39,7 @@ function install_mousejack() {
 function install_jackit() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing jackit"
-    pipx install --system-site-packages git+https://github.com/insecurityofthings/jackit
+    uv tool install git+https://github.com/insecurityofthings/jackit
     add-history jackit
     add-test-command "jackit --help"
     add-to-list "jackit,https://github.com/insecurityofthings/jackit,Exploit to take over a wireless mouse and keyboard"
@@ -48,12 +48,14 @@ function install_jackit() {
 # Package dedicated to SDR
 function package_sdr() {
     set_env
+    init_failure_tracking
     local start_time
     local end_time
     start_time=$(date +%s)
-    install_sdr_apt_tools
-    install_mousejack               # tools for mousejacking
-    install_jackit                  # tools for mousejacking
+    safe_install sdr install_sdr_apt_tools
+    safe_install sdr install_mousejack               # tools for mousejacking
+    safe_install sdr install_jackit                  # tools for mousejacking
+    print_failure_summary
     post_install
     end_time=$(date +%s)
     local elapsed_time=$((end_time - start_time))
