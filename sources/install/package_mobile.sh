@@ -98,7 +98,7 @@ function install_mobsf() {
     fapt wkhtmltopdf libxmlsec1 libxmlsec1-dev
     git -C /tmp clone --depth 1 https://github.com/MobSF/Mobile-Security-Framework-MobSF MobSF
     # yara-python-dex is be needed for ARM64
-    uv tool install /tmp/MobSF --with setuptools --with git+https://github.com/MobSF/yara-python-dex.git --with xmlsec==1.3.14
+    uv tool install /tmp/MobSF --with setuptools --with git+https://github.com/MobSF/yara-python-dex.git --with xmlsec==1.3.14 --no-binary-package xmlsec
     
     # Use 'command uv' to bypass the wrapper that adds logging to stdout
     local uv_tool_dir
@@ -107,7 +107,6 @@ function install_mobsf() {
     # Line 102 was causing "command not found" due to log pollution and "No such file" due to hardcoded path.
     # It tried to run settings.py which is not executable. Removing it.
 
-    add-aliases mobsf # alias is only needed with venv and can be removed when switching back to pipx
     add-history mobsf
     add-test-command "$uv_tool_dir/mobsf/bin/python -c 'from mobsf.MobSF.settings import VERSION; print(VERSION)'"
     add-to-list "mobsf,https://github.com/MobSF/Mobile-Security-Framework-MobSF,Automated and all-in-one mobile application (Android/iOS/Windows) pen-testing malware analysis and security assessment framework"
