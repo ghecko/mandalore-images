@@ -45,19 +45,14 @@ function install_go() {
     # CODE-CHECK-WHITELIST=add-aliases,add-to-list,add-history
     colorecho "Installing go (Golang)"
     asdf plugin add golang https://github.com/asdf-community/asdf-golang.git
-    # With golang 1.23 many package build are broken, temp fix to use 1.22.2 as golang latest
-    local temp_fix_limit="2026-04-01"
-    if check_temp_fix_expiry "$temp_fix_limit"; then
-      # 1.24.4 needed for BloodHound-CE
-      asdf install golang 1.24.4
-      # 1.23 needed by sensepost/ruler
-      asdf install golang 1.23.11
-      # 1.24 needed by BloodHound-CE
-      asdf install golang 1.24.5
-      # Default GO version: 1.22.2
-      asdf install golang 1.22.2
-      asdf set --home golang 1.22.2
-    fi
+    # 1.26.1 needed for ruler, BloodHound-CE, GoExec, s3scanner
+    asdf install golang 1.26.1
+    # 1.23.0 needed for bettercap, subzy
+    asdf install golang 1.23.0
+    # Default GO version: 1.22.2
+    asdf install golang 1.22.2
+
+    asdf set --home golang 1.22.2 1.23.0 1.26.1
 
     add-test-command "go version"
 }
@@ -205,6 +200,8 @@ function install_rvm() {
     rvm autolibs read-fail
     rvm rvmrc warning ignore allGemfiles
     rvm use 3.2.2@default
+    rvm install ruby-3.3.8 # Needed by metasploits
+    rvm get head
     rvm cleanup all
     gem update
     add-test-command "rvm --version"

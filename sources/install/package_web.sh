@@ -504,11 +504,6 @@ function install_nosqlmap() {
     git -C /opt/tools clone --depth 1 https://github.com/codingo/NoSQLMap.git
     cd /opt/tools/NoSQLMap || exit
     python2 -m virtualenv --python python2 ./venv
-    # Requests >= 2.32 requires at least python 3.8 
-    local temp_fix_limit="2026-04-01"
-    if check_temp_fix_expiry "$temp_fix_limit"; then
-      sed -E -i 's/requests==2\.[0-9]+\.[0-9]+/requests==2.27.1/g' setup.py
-    fi
     catch_and_retry ./venv/bin/python2 setup.py install
     # https://github.com/codingo/NoSQLMap/issues/126
     rm -rf venv/lib/python2.7/site-packages/certifi-2023.5.7-py2.7.egg

@@ -575,7 +575,7 @@ function install_ldaprelayscan() {
     uv pip install -r requirements.txt
     # without following fix, tool raises "oscrypto.errors.LibraryNotFoundError: Error detecting the version of libcrypto"
     # see https://github.com/wbond/oscrypto/issues/78 and https://github.com/wbond/oscrypto/issues/75
-    local temp_fix_limit="2026-04-01"
+    local temp_fix_limit="2026-09-01"
     if check_temp_fix_expiry "$temp_fix_limit"; then
       uv pip install --reinstall oscrypto@git+https://github.com/wbond/oscrypto.git
     fi
@@ -827,7 +827,7 @@ function install_pkinittools() {
     uv pip install -r requirements.txt
     # without following fix, tool raises "oscrypto.errors.LibraryNotFoundError: Error detecting the version of libcrypto"
     # see https://github.com/wbond/oscrypto/issues/78 and https://github.com/wbond/oscrypto/issues/75
-    local temp_fix_limit="2026-04-01"
+    local temp_fix_limit="2026-09-01"
     if check_temp_fix_expiry "$temp_fix_limit"; then
       uv pip install --reinstall oscrypto@git+https://github.com/wbond/oscrypto.git
     fi
@@ -1129,10 +1129,6 @@ function install_sccmhunter() {
     source ./venv/bin/activate
     uv pip install -r requirements.txt
     # https://github.com/fastapi/typer/discussions/1215
-    local temp_fix_limit="2026-04-01"
-    if check_temp_fix_expiry "$temp_fix_limit"; then
-      uv pip install click~=8.1.8
-    fi
     deactivate
     add-aliases sccmhunter
     add-history sccmhunter
