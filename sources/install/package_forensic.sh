@@ -97,6 +97,11 @@ function install_jadx() {
     colorecho "Installing jadx"
     git -C /opt/tools/ clone --depth 1 https://github.com/skylot/jadx.git
     cd /opt/tools/jadx || exit
+    # error-prone (used by gradle build) ships class file version 65 (Java 21).
+    # Default `java` may point to JDK 17 here (pulled in transitively by some apt deps);
+    # force JDK 21 explicitly for the gradle build.
+    export JAVA_HOME=/usr/lib/jvm/java-21-openjdk
+    export PATH="$JAVA_HOME/bin:$PATH"
     ./gradlew dist
     ln -v -s /opt/tools/jadx/build/jadx/bin/jadx /opt/tools/bin/jadx
     ln -v -s /opt/tools/jadx/build/jadx/bin/jadx-gui /opt/tools/bin/jadx-gui
