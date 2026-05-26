@@ -135,19 +135,27 @@ function install_bloodhound-ce() {
     # Build BloodHound-CE
     local latestRelease
     # Had to output into a tempfile as the Mandalore's wrapper for curl breaks stdout
-    curl --location --silent "https://api.github.com/repos/SpecterOps/BloodHound/releases" -o "${curl_tempfile}"
+    gh_api "https://api.github.com/repos/SpecterOps/BloodHound/releases" -o "${curl_tempfile}"
     latestRelease=$(jq --raw-output 'first(.[] | select(.tag_name | contains("-rc") | not) | .tag_name)' "${curl_tempfile}")
     git -C "${bloodhoundce_path}" clone --depth 1 --branch "${latestRelease}" "https://github.com/SpecterOps/BloodHound.git" src
     cd "${bloodhoundce_path}/src/" || exit
 
     # Reference: https://github.com/SpecterOps/BloodHound/blob/main/dockerfiles/bloodhound.Dockerfile
+    # bh-shared-ui imports serialize-javascript which uses globalThis.crypto.randomUUID();
+    # this is only available from Node >= 19. The base image's `nvm use default` doesn't
+    # propagate into the safe_install subshell, so source nvm and activate an LTS node here.
+    export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+    # shellcheck source=/dev/null
+    [[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
+    nvm use --lts || nvm use node
     yarn install
     yarn build
     mkdir -p ./cmd/api/src/api/static/assets
     cp -r ./cmd/ui/dist/. ./cmd/api/src/api/static/assets
 
     # Build the API
-    asdf set golang 1.24.4
+    # 1.26.1 is installed by package_base.sh; 1.24.4 was never installed.
+    asdf set golang 1.26.1
     go build -C cmd/api/src -o ${bloodhoundce_path}/bloodhound -ldflags "-X 'github.com/specterops/bloodhound/cmd/api/src/version.majorVersion=8' -X 'github.com/specterops/bloodhound/cmd/api/src/version.minorVersion=0' -X 'github.com/specterops/bloodhound/cmd/api/src/version.patchVersion=1'" github.com/specterops/bloodhound/cmd/api/src/cmd/bhapi
 
     # Force remove go and yarn cache that are not stored in standard locations
@@ -157,7 +165,7 @@ function install_bloodhound-ce() {
     local sharphound_url
     local sharphound_name
     local sharphound_name_lowercase
-    curl --location --silent "https://api.github.com/repos/BloodHoundAD/SharpHound/releases/latest" -o "${curl_tempfile}"
+    gh_api "https://api.github.com/repos/BloodHoundAD/SharpHound/releases/latest" -o "${curl_tempfile}"
     sharphound_url=$(jq --raw-output '.assets[].browser_download_url | select(contains("debug") | not) | select(contains("sha256") | not)' "${curl_tempfile}")
     sharphound_name=$(jq --raw-output '.assets[].name | select(contains("debug") | not) | select(contains("sha256") | not)' "${curl_tempfile}")
     # lowercase fix: https://github.com/ThePorgs/Exegol-images/pull/405
@@ -177,7 +185,7 @@ function install_bloodhound-ce() {
     local azurehound_url_arm64
     local azurehound_url_arm64_sha256
     local azurehound_version
-    curl --location --silent "https://api.github.com/repos/BloodHoundAD/AzureHound/releases/latest" -o "${curl_tempfile}"
+    gh_api "https://api.github.com/repos/BloodHoundAD/AzureHound/releases/latest" -o "${curl_tempfile}"
     azurehound_version=$(jq --raw-output '.tag_name' "${curl_tempfile}")
     azurehound_url_amd64=$(jq --raw-output '.assets[].browser_download_url | select (endswith("_linux_amd64.zip"))' "${curl_tempfile}")
     azurehound_url_amd64_sha256=$(jq --raw-output '.assets[].browser_download_url | select (endswith("_linux_amd64.zip.sha256"))' "${curl_tempfile}")
@@ -1101,7 +1109,8 @@ function install_ruler() {
     colorecho "Downloading ruler and form templates"
     mkdir -p /opt/tools/ruler || exit
     cd /opt/tools/ruler || exit
-    asdf set golang 1.24.5
+    # 1.26.1 is one of the golang versions installed by package_base.sh; 1.24.5 was never installed.
+    asdf set golang 1.26.1
     mkdir -p .go/bin
     GOBIN=/opt/tools/ruler/.go/bin go install -v github.com/sensepost/ruler@latest
     asdf reshim golang
@@ -1265,7 +1274,7 @@ function install_upx() {
         criticalecho-noexit "This installation function doesn't support architecture $(uname -m)" && return
     fi
     local upx_url
-    upx_url=$(curl --location --silent "https://api.github.com/repos/upx/upx/releases/latest" | grep 'browser_download_url.*upx.*'"$arch"'.*tar.xz"' | grep -o 'https://[^"]*')
+    upx_url=$(gh_api "https://api.github.com/repos/upx/upx/releases/latest" | grep 'browser_download_url.*upx.*'"$arch"'.*tar.xz"' | grep -o 'https://[^"]*')
     curl --location -o /tmp/upx.tar.xz "$upx_url"
     tar -xf /tmp/upx.tar.xz --directory /tmp
     rm /tmp/upx.tar.xz
