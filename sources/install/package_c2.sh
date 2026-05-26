@@ -18,16 +18,20 @@ function install_metasploit() {
     colorecho "Installing Metasploit"
     fapt libpcap-dev libpq-dev zlib1g-dev libsqlite3-dev
     git -C /opt/tools clone --depth 1 https://github.com/rapid7/metasploit-framework.git
-    cd /opt/tools/metasploit-framework || exit  # rvm gemset ruby-3.2.2@metasploit-framework should be auto setup here
+    cd /opt/tools/metasploit-framework || exit
 
     # Fix msfupdate git config requirements
     git config user.name "mandalore"
     git config user.email "mandalore@localhost"
 
+    # Metasploit needs Ruby 3.3.8 (installed by package_base.sh). Default session ruby
+    # is 3.2.2 (set_ruby_env), so we explicitly source rvm and bascule the *current
+    # shell* to 3.3.8 inside its own gemset, then regenerate wrappers so subshells
+    # (e.g. the `sudo -u postgres sh -c` below) can resolve `bundle` reliably.
+    source /usr/local/rvm/scripts/rvm
     rvm use 3.3.8@metasploit-framework --create
-
-    # install dep manager
     gem install bundler
+    rvm wrapper "$(rvm current)" --no-prefix bundle bundler gem
     bundle install
 
     # Add missing deps
@@ -39,7 +43,7 @@ function install_metasploit() {
     if check_temp_fix_expiry "$temp_fix_limit"; then
       gem install timeout --version 0.4.1
     fi
-    
+
     # Cleanup duplicate stringio versions to silence 'Unresolved or ambiguous specs' warning
     gem cleanup stringio
 
@@ -49,7 +53,8 @@ function install_metasploit() {
     chown -R postgres:postgres /var/lib/postgresql/.bundle
     chmod -R o+rx /opt/tools/metasploit-framework/
     chmod 444 /opt/tools/metasploit-framework/.git/index # fatal: .git/index: index file open failed: Permission denied
-    sudo -u postgres sh -c "git config --global --add safe.directory /opt/tools/metasploit-framework && /usr/local/rvm/gems/ruby-3.2.2@metasploit-framework/wrappers/bundle exec /opt/tools/metasploit-framework/msfdb init"
+    # Use the 3.3.8@metasploit-framework gemset wrapper (matches `rvm use` above).
+    sudo -u postgres sh -c "git config --global --add safe.directory /opt/tools/metasploit-framework && /usr/local/rvm/gems/ruby-3.3.8@metasploit-framework/wrappers/bundle exec /opt/tools/metasploit-framework/msfdb init"
     cp -r /var/lib/postgresql/.msf4 /root
 
     # Install the PEASS Ruby MSF module (https://github.com/peass-ng/PEASS-ng/tree/master/metasploit)
@@ -88,7 +93,7 @@ function install_sliver() {
     # We use the GitHub API to find the latest tag (e.g., v1.6.0)
     local repo="BishopFox/sliver"
     local latest_tag
-    latest_tag=$(curl -s "https://api.github.com/repos/$repo/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    latest_tag=$(gh_api "https://api.github.com/repos/$repo/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
     
     # Fallback if API fails
     if [[ -z "$latest_tag" ]]; then
