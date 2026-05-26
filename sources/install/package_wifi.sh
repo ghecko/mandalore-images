@@ -78,8 +78,9 @@ function install_bettercap() {
     fapt libpcap-dev libusb-1.0-0-dev libnetfilter-queue-dev
     mkdir -p /opt/tools/bettercap || exit
     cd /opt/tools/bettercap || exit
-    # Custom install because it requires go >= 1.23.0 (default running go is 1.22.2)
-    asdf set golang 1.24.5
+    # Requires go >= 1.23.0 (default running go is 1.22.2).
+    # 1.26.1 is installed by package_base.sh; 1.24.5 was never installed.
+    asdf set golang 1.26.1
     mkdir -p .go/bin
     GOBIN=/opt/tools/bettercap/.go/bin go install -v github.com/bettercap/bettercap@latest
     /opt/tools/bettercap/.go/bin/bettercap -eval "caplets.update; ui.update; q"
