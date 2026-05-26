@@ -34,6 +34,42 @@ install_ligolo-ng
 
 This allows you to iterate instantly on syntax or logic errors.
 
+# GitHub token (recommended for full builds)
+
+A full build performs ~13 calls to `api.github.com` (to resolve "latest release" URLs for gitleaks, trufflehog, ghidra, asdf, Temurin, BloodHound-CE, ffuf, upx, CyberChef, etc.). Unauthenticated calls are rate-limited to **60 req/h per IP** — a full build routinely hits this and fails with HTTP 403 on a random subset of tools.
+
+Passing a GitHub Personal Access Token raises the limit to **5000 req/h** and removes this class of flakiness entirely.
+
+## Creating the token
+
+Create a [classic PAT](https://github.com/settings/tokens) with:
+
+- **Note**: e.g. `mandalore-build`
+- **Expiration**: 90 days or longer (depending on your rotation policy)
+- **Scopes**: **none** — leave every checkbox unchecked. The token is only used to read public release metadata, which requires no scope; authentication alone is enough to lift the rate limit. (If your org policy refuses a no-scope token, tick `public_repo` only.)
+
+Treat the token as a secret — never commit it.
+
+## Using the token
+
+The token is wired through every dockerfile as an `ARG GITHUB_TOKEN` and exposed at build-time via `ENV`. The `gh_api()` helper in `sources/install/common.sh` reads `GITHUB_TOKEN` and injects an `Authorization: Bearer` header when set — if the variable is empty, calls fall back to unauthenticated and the build still works (it just risks 403s under load).
+
+Pass the token at build time:
+
+```bash
+# Linux / macOS
+export GH_TOKEN=ghp_...
+docker build --build-arg GITHUB_TOKEN="$GH_TOKEN" -f base.dockerfile -t lksec/mandalore-base .
+```
+
+```powershell
+# Windows PowerShell
+$env:GH_TOKEN = "ghp_..."
+docker build --build-arg GITHUB_TOKEN=$env:GH_TOKEN -f base.dockerfile -t lksec/mandalore-base .
+```
+
+The `Makefile` targets should be invoked with the same `--build-arg`; if you use them frequently, export `GH_TOKEN` in your shell profile or pass it via your CI's secret manager.
+
 # Build Error Handling
 
 The build system includes resilient error handling to avoid aborting the entire build when individual tools fail.
