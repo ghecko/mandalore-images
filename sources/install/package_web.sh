@@ -201,7 +201,7 @@ function install_ffuf() {
         criticalecho-noexit "This installation function doesn't support architecture $(uname -m)" && return
     fi
     local ffuf_url
-    ffuf_url=$(curl --location --silent "https://api.github.com/repos/ffuf/ffuf/releases/latest" | grep 'browser_download_url.*ffuf.*linux_'"$arch"'.tar.gz"' | grep -o 'https://[^"]*')
+    ffuf_url=$(gh_api "https://api.github.com/repos/ffuf/ffuf/releases/latest" | grep 'browser_download_url.*ffuf.*linux_'"$arch"'.tar.gz"' | grep -o 'https://[^"]*')
     curl --location -o /tmp/ffuf.tar.gz "$ffuf_url"
     tar -xf /tmp/ffuf.tar.gz --directory /opt/tools/bin/
     add-history ffuf
@@ -323,7 +323,8 @@ function install_httpmethods() {
     cd /opt/tools/httpmethods || exit
     uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    uv pip install -r requirements.txt
+    # Upstream migrated from requirements.txt to pyproject.toml.
+    uv pip install .
     deactivate
     add-aliases httpmethods
     add-history httpmethods
@@ -545,11 +546,12 @@ function install_patator() {
     fapt libmariadb-dev libcurl4-openssl-dev libssl-dev ldap-utils libpq-dev ike-scan unzip default-jdk libsqlite3-dev libsqlcipher-dev
     git -C /opt/tools clone --depth 1 https://github.com/lanjelot/patator.git
     cd /opt/tools/patator || exit
-    uv venv --python 3.13 --seed ./venv
+    # Python 3.11: cx_Oracle 8.3 (pinned in patator's requirements.txt) uses the legacy
+    # `pkg_resources` API that was removed in Python 3.13 + setuptools >= 81.
+    # 3.11 ships `pkg_resources` and builds cx_Oracle cleanly without further patching.
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    # Fix for cx_Oracle build failure (missing pkg_resources)
-    uv pip install setuptools wheel
-    uv pip install --no-build-isolation -r requirements.txt
+    uv pip install -r requirements.txt
     deactivate
     add-aliases patator
     add-history patator
