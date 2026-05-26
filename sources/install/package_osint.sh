@@ -210,7 +210,8 @@ function install_linkedin2username() {
     cd /opt/tools/linkedin2username || exit
     uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    uv pip install -r requirements.txt
+    # Upstream no longer ships requirements.txt — install deps directly.
+    uv pip install requests beautifulsoup4
     deactivate
     add-aliases linkedin2username
     add-history linkedin2username
@@ -243,7 +244,8 @@ function install_carbon14() {
     cd /opt/tools/Carbon14 || exit
     uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    uv pip install -r requirements.txt
+    # Upstream no longer ships requirements.txt — install deps directly.
+    uv pip install requests beautifulsoup4
     deactivate
     add-aliases carbon14
     add-history carbon14
