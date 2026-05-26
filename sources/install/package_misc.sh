@@ -141,7 +141,7 @@ function install_cyberchef() {
     # CODE-CHECK-WHITELIST=add-aliases,add-history
     colorecho "Installing CyberChef"
     local last_release
-    last_release=$(curl --location --silent "https://api.github.com/repos/gchq/CyberChef/releases/latest"|grep browser_download_url|awk '{print $2}'|tr -d '"')
+    last_release=$(gh_api "https://api.github.com/repos/gchq/CyberChef/releases/latest"|grep browser_download_url|awk '{print $2}'|tr -d '"')
     echo "$last_release"
     if [[ -z "$last_release" ]]; then
         criticalecho-noexit "Latest release not found" && return

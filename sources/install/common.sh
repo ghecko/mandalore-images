@@ -24,6 +24,24 @@ function criticalecho-noexit () {
     echo -e "${RED}[MANDALORE ERROR] $*${NOCOLOR}" 2>&1
 }
 
+### GitHub API helper
+
+function gh_api() {
+    # Wrapper around curl for api.github.com calls.
+    # Injects Authorization header if GITHUB_TOKEN is set (raises rate-limit
+    # from 60 req/h unauth to 5000 req/h auth).
+    # Usage: gh_api "https://api.github.com/repos/..."  [extra curl args]
+    local auth_args=()
+    if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+        auth_args+=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
+    fi
+    curl --location --silent \
+        -H "Accept: application/vnd.github+json" \
+        -H "X-GitHub-Api-Version: 2022-11-28" \
+        "${auth_args[@]}" \
+        "$@"
+}
+
 ### Support functions
 
 function add-to-list() {

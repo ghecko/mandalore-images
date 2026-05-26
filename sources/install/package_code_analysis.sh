@@ -48,7 +48,7 @@ function install_gitleaks() {
         criticalecho-noexit "This installation function doesn't support architecture $(uname -m)" && return
     fi
     local gitleaks_url
-    gitleaks_url=$(curl --location --silent "https://api.github.com/repos/gitleaks/gitleaks/releases/latest" | grep 'browser_download_url.*gitleaks.*linux_'"$arch"'.*tar.gz"' | grep -o 'https://[^"]*')
+    gitleaks_url=$(gh_api "https://api.github.com/repos/gitleaks/gitleaks/releases/latest" | grep 'browser_download_url.*gitleaks.*linux_'"$arch"'.*tar.gz"' | grep -o 'https://[^"]*')
     curl --location -o /tmp/gitleaks.tar.gz "$gitleaks_url"
     tar -xf /tmp/gitleaks.tar.gz --directory /tmp
     rm /tmp/gitleaks.tar.gz
@@ -71,7 +71,7 @@ function install_trufflehog() {
         criticalecho-noexit "This installation function doesn't support architecture $(uname -m)" && return
     fi
     local trufflehog_url
-    trufflehog_url=$(curl --location --silent "https://api.github.com/repos/trufflesecurity/trufflehog/releases/latest" | grep 'browser_download_url.*trufflehog.*linux_'"$arch"'.*tar.gz"' | grep -o 'https://[^"]*')
+    trufflehog_url=$(gh_api "https://api.github.com/repos/trufflesecurity/trufflehog/releases/latest" | grep 'browser_download_url.*trufflehog.*linux_'"$arch"'.*tar.gz"' | grep -o 'https://[^"]*')
     curl --location -o /tmp/trufflehog.tar.gz "$trufflehog_url"
     tar -xf /tmp/trufflehog.tar.gz --directory /tmp
     rm /tmp/trufflehog.tar.gz

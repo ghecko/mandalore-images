@@ -97,7 +97,7 @@ function install_ghidra() {
     # CODE-CHECK-WHITELIST=add-test-command
     colorecho "Installing Ghidra"
     local ghidra_url
-    ghidra_url=$(curl --location --silent "https://api.github.com/repos/NationalSecurityAgency/ghidra/releases/latest" | grep 'browser_download_url' | grep -o 'https://[^"]*')
+    ghidra_url=$(gh_api "https://api.github.com/repos/NationalSecurityAgency/ghidra/releases/latest" | grep 'browser_download_url' | grep -o 'https://[^"]*')
     curl --location -o /tmp/ghidra.zip "$ghidra_url"
     unzip -q /tmp/ghidra.zip -d /opt/tools # -q because too much useless verbose
     mv -v /opt/tools/ghidra_* /opt/tools/ghidra # ghidra always has a version number in the unzipped folder, lets make it consistent

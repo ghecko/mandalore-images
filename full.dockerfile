@@ -4,6 +4,8 @@ FROM lksec/mandalore-base
 ARG TAG
 ARG VERSION
 ARG BUILD_DATE
+ARG GITHUB_TOKEN=""
+ENV GITHUB_TOKEN="${GITHUB_TOKEN}"
 
 LABEL org.mandalore.tag="${TAG}"
 LABEL org.mandalore.version="${VERSION}"
