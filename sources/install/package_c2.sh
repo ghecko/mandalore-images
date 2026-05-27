@@ -24,14 +24,11 @@ function install_metasploit() {
     git config user.name "mandalore"
     git config user.email "mandalore@localhost"
 
-    # Metasploit needs Ruby 3.3.8 (installed by package_base.sh). Default session ruby
-    # is 3.2.2 (set_ruby_env), so we explicitly source rvm and bascule the *current
-    # shell* to 3.3.8 inside its own gemset, then regenerate wrappers so subshells
-    # (e.g. the `sudo -u postgres sh -c` below) can resolve `bundle` reliably.
-    source /usr/local/rvm/scripts/rvm
+    # Metasploit needs Ruby 3.3.8 (installed by package_base.sh). `rvm use --create`
+    # auto-generates the gemset wrappers (visible as "generating metasploit-framework
+    # wrappers" in the build log), so no explicit `rvm wrapper` call is needed.
     rvm use 3.3.8@metasploit-framework --create
     gem install bundler
-    rvm wrapper "$(rvm current)" --no-prefix bundle bundler gem
     bundle install
 
     # Add missing deps
@@ -46,6 +43,9 @@ function install_metasploit() {
 
     # Cleanup duplicate stringio versions to silence 'Unresolved or ambiguous specs' warning
     gem cleanup stringio
+
+    # Return to the default ruby for the rest of the build (set_ruby_env's choice).
+    rvm use 3.2.2@default
 
     # msfdb setup
     fapt postgresql
