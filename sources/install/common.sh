@@ -31,15 +31,27 @@ function gh_api() {
     # Injects Authorization header if GITHUB_TOKEN is set (raises rate-limit
     # from 60 req/h unauth to 5000 req/h auth).
     # Usage: gh_api "https://api.github.com/repos/..."  [extra curl args]
-    local auth_args=()
-    if [[ -n "${GITHUB_TOKEN:-}" ]]; then
-        auth_args+=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
-    fi
-    curl --location --silent \
-        -H "Accept: application/vnd.github+json" \
-        -H "X-GitHub-Api-Version: 2022-11-28" \
-        "${auth_args[@]}" \
-        "$@"
+    #
+    # SECURITY: the token is passed via a curl --config file (not -H on the
+    # command line) so it never appears in catch_and_retry's '[MANDALORE DEBUG] $*'
+    # echo, in shell history, or in process listings. The config file is created
+    # with 0600 and removed immediately after the call.
+    local cfg rc
+    cfg=$(mktemp)
+    chmod 600 "$cfg"
+    {
+        echo 'silent'
+        echo 'location'
+        echo 'header = "Accept: application/vnd.github+json"'
+        echo 'header = "X-GitHub-Api-Version: 2022-11-28"'
+        if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+            echo "header = \"Authorization: Bearer ${GITHUB_TOKEN}\""
+        fi
+    } > "$cfg"
+    curl --config "$cfg" "$@"
+    rc=$?
+    rm -f "$cfg"
+    return $rc
 }
 
 ### Support functions
