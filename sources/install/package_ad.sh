@@ -142,12 +142,11 @@ function install_bloodhound-ce() {
 
     # Reference: https://github.com/SpecterOps/BloodHound/blob/main/dockerfiles/bloodhound.Dockerfile
     # bh-shared-ui imports serialize-javascript which uses globalThis.crypto.randomUUID();
-    # this is only available from Node >= 19. The base image's `nvm use default` doesn't
-    # propagate into the safe_install subshell, so source nvm and activate an LTS node here.
-    export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
-    # shellcheck source=/dev/null
-    [[ -s "$NVM_DIR/nvm.sh" ]] && source "$NVM_DIR/nvm.sh"
-    nvm use --lts || nvm use node
+    # this is only available from Node >= 19. Pin Node 20 explicitly via nvm (the base
+    # image's `nvm use default` does not propagate into safe_install's subshell).
+    source ~/.nvm/nvm.sh
+    nvm install 20
+    nvm use 20
     yarn install
     yarn build
     mkdir -p ./cmd/api/src/api/static/assets
@@ -156,20 +155,33 @@ function install_bloodhound-ce() {
     # Build the API
     # 1.26.1 is installed by package_base.sh; 1.24.4 was never installed.
     asdf set golang 1.26.1
+    # Workaround for a BloodHound-CE migration SQL issue, see Exegol-images PR #667.
+    local temp_fix_limit="2026-09-01"
+    if check_temp_fix_expiry "$temp_fix_limit"; then
+        sed -i 's/\s*STORAGE MAIN//' ./cmd/api/src/database/migration/migrations/v8.5.0.sql
+    fi
     go build -C cmd/api/src -o ${bloodhoundce_path}/bloodhound -ldflags "-X 'github.com/specterops/bloodhound/cmd/api/src/version.majorVersion=8' -X 'github.com/specterops/bloodhound/cmd/api/src/version.minorVersion=0' -X 'github.com/specterops/bloodhound/cmd/api/src/version.patchVersion=1'" github.com/specterops/bloodhound/cmd/api/src/cmd/bhapi
 
     # Force remove go and yarn cache that are not stored in standard locations
     rm -rf "${bloodhoundce_path}/src/cache" "${bloodhoundce_path}/src/.yarn/cache"
 
     ## SharpHound
+    # Note: SpecterOps acquired BloodHoundAD; the SharpHound repo was renamed accordingly.
+    # The legacy BloodHoundAD/SharpHound URL still resolves but yields an empty release
+    # payload, which silently produced an empty URL and a confusing wget failure.
     local sharphound_url
     local sharphound_name
     local sharphound_name_lowercase
-    gh_api "https://api.github.com/repos/BloodHoundAD/SharpHound/releases/latest" -o "${curl_tempfile}"
+    gh_api "https://api.github.com/repos/SpecterOps/SharpHound/releases/latest" -o "${curl_tempfile}"
     sharphound_url=$(jq --raw-output '.assets[].browser_download_url | select(contains("debug") | not) | select(contains("sha256") | not)' "${curl_tempfile}")
     sharphound_name=$(jq --raw-output '.assets[].name | select(contains("debug") | not) | select(contains("sha256") | not)' "${curl_tempfile}")
     # lowercase fix: https://github.com/ThePorgs/Exegol-images/pull/405
     sharphound_name_lowercase=$(jq --raw-output '.assets[].name | ascii_downcase | select(contains("debug") | not) | select(contains("sha256") | not)' "${curl_tempfile}")
+    # Defensive: fail fast if jq returned nothing (renamed/archived repo, 404, or asset filter mismatch).
+    if [[ -z "$sharphound_url" || -z "$sharphound_name" ]]; then
+        criticalecho-noexit "SharpHound release lookup failed (empty URL/name). Inspect ${curl_tempfile} or the asset filter."
+        return 1
+    fi
     wget --directory-prefix "${sharphound_path}" "${sharphound_url}"
     if [[ ! -f "${sharphound_path}/${sharphound_name}" ]]; then
         echo "Error: SharpHound file '${sharphound_name}' was not downloaded successfully to '${sharphound_path}'."
@@ -185,12 +197,18 @@ function install_bloodhound-ce() {
     local azurehound_url_arm64
     local azurehound_url_arm64_sha256
     local azurehound_version
-    gh_api "https://api.github.com/repos/BloodHoundAD/AzureHound/releases/latest" -o "${curl_tempfile}"
+    # Repo renamed: BloodHoundAD -> SpecterOps after the acquisition.
+    gh_api "https://api.github.com/repos/SpecterOps/AzureHound/releases/latest" -o "${curl_tempfile}"
     azurehound_version=$(jq --raw-output '.tag_name' "${curl_tempfile}")
     azurehound_url_amd64=$(jq --raw-output '.assets[].browser_download_url | select (endswith("_linux_amd64.zip"))' "${curl_tempfile}")
     azurehound_url_amd64_sha256=$(jq --raw-output '.assets[].browser_download_url | select (endswith("_linux_amd64.zip.sha256"))' "${curl_tempfile}")
     azurehound_url_arm64=$(jq --raw-output '.assets[].browser_download_url | select (endswith("_linux_arm64.zip"))' "${curl_tempfile}")
     azurehound_url_arm64_sha256=$(jq --raw-output '.assets[].browser_download_url | select (endswith("_linux_arm64.zip.sha256"))' "${curl_tempfile}")
+    # Defensive: fail fast if jq returned nothing.
+    if [[ -z "$azurehound_url_amd64" || -z "$azurehound_version" ]]; then
+        criticalecho-noexit "AzureHound release lookup failed (empty URL/version). Inspect ${curl_tempfile} or the asset filter."
+        return 1
+    fi
     rm "${curl_tempfile}"
     wget --directory-prefix "${azurehound_path}" "${azurehound_url_amd64}"
     # Extract filename from URL for AMD64
