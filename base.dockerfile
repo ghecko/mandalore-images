@@ -4,6 +4,10 @@ FROM debian:12-slim
 ARG TAG
 ARG VERSION
 ARG BUILD_DATE
+# Optional GitHub PAT to avoid api.github.com rate-limiting during build.
+# Pass with: docker build --build-arg GITHUB_TOKEN=<pat> ...
+ARG GITHUB_TOKEN=""
+ENV GITHUB_TOKEN="${GITHUB_TOKEN}"
 
 LABEL org.mandalore.tag="${TAG}"
 LABEL org.mandalore.version="${VERSION}"

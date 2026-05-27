@@ -17,7 +17,7 @@ function install_brakeman() {
 function install_semgrep() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing semgrep"
-    pipx install --system-site-packages semgrep
+    uv tool install semgrep
     add-history semgrep
     add-test-command "semgrep --help"
     add-to-list "semgrep,https://github.com/returntocorp/semgrep/,Static analysis tool that supports multiple languages and can find a variety of vulnerabilities and coding errors."
@@ -48,7 +48,7 @@ function install_gitleaks() {
         criticalecho-noexit "This installation function doesn't support architecture $(uname -m)" && return
     fi
     local gitleaks_url
-    gitleaks_url=$(curl --location --silent "https://api.github.com/repos/gitleaks/gitleaks/releases/latest" | grep 'browser_download_url.*gitleaks.*linux_'"$arch"'.*tar.gz"' | grep -o 'https://[^"]*')
+    gitleaks_url=$(gh_api "https://api.github.com/repos/gitleaks/gitleaks/releases/latest" | grep 'browser_download_url.*gitleaks.*linux_'"$arch"'.*tar.gz"' | grep -o 'https://[^"]*')
     curl --location -o /tmp/gitleaks.tar.gz "$gitleaks_url"
     tar -xf /tmp/gitleaks.tar.gz --directory /tmp
     rm /tmp/gitleaks.tar.gz
@@ -71,7 +71,7 @@ function install_trufflehog() {
         criticalecho-noexit "This installation function doesn't support architecture $(uname -m)" && return
     fi
     local trufflehog_url
-    trufflehog_url=$(curl --location --silent "https://api.github.com/repos/trufflesecurity/trufflehog/releases/latest" | grep 'browser_download_url.*trufflehog.*linux_'"$arch"'.*tar.gz"' | grep -o 'https://[^"]*')
+    trufflehog_url=$(gh_api "https://api.github.com/repos/trufflesecurity/trufflehog/releases/latest" | grep 'browser_download_url.*trufflehog.*linux_'"$arch"'.*tar.gz"' | grep -o 'https://[^"]*')
     curl --location -o /tmp/trufflehog.tar.gz "$trufflehog_url"
     tar -xf /tmp/trufflehog.tar.gz --directory /tmp
     rm /tmp/trufflehog.tar.gz
@@ -84,14 +84,16 @@ function install_trufflehog() {
 # Package dedicated to SAST and DAST tools
 function package_code_analysis() {
     set_env
+    init_failure_tracking
     local start_time
     local end_time
     start_time=$(date +%s)
-    install_brakeman		            # Checks Ruby on Rails applications for security vulnerabilities
-    install_semgrep                     # Static analysis engine for finding bugs and vulnerabilities
-    install_pp-finder                   # Prototype pollution finder tool for javascript
-    install_gitleaks
-    install_trufflehog
+    safe_install code_analysis install_brakeman		            # Checks Ruby on Rails applications for security vulnerabilities
+    safe_install code_analysis install_semgrep                     # Static analysis engine for finding bugs and vulnerabilities
+    safe_install code_analysis install_pp-finder                   # Prototype pollution finder tool for javascript
+    safe_install code_analysis install_gitleaks
+    safe_install code_analysis install_trufflehog
+    print_failure_summary
     post_install
     end_time=$(date +%s)
     local elapsed_time=$((end_time - start_time))

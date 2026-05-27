@@ -18,7 +18,14 @@ function install_rsactftool() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing Rsactftool"
     fapt libmpc-dev
-    pipx install --system-site-packages git+https://github.com/RsaCtfTool/RsaCtfTool
+    # using python 3.11 and manual venv to pre-install z3-solver and avoid build failure on aarch64
+    uv venv --python 3.11 --seed /opt/tools/rsactftool/venv
+    source /opt/tools/rsactftool/venv/bin/activate
+    # Pinning z3-solver to avoid compilation issues with GCC 12 (C++20 <format> error)
+    uv pip install "z3-solver<4.13.0"
+    uv pip install git+https://github.com/RsaCtfTool/RsaCtfTool
+    deactivate
+    add-aliases rsactftool
     add-history rsactftool
     add-test-command "RsaCtfTool --help"
     add-to-list "rsactftool,https://github.com/RsaCtfTool/RsaCtfTool,The rsactftool tool is used for RSA cryptographic operations and analysis."
@@ -37,12 +44,14 @@ function install_rsacracker() {
 # Package dedicated to attack crypto
 function package_crypto() {
     set_env
+    init_failure_tracking
     local start_time
     local end_time
     start_time=$(date +%s)
-    install_rsactftool              # attack rsa
-    install_tls-map                 # CLI & library for mapping TLS cipher algorithm names: IANA, OpenSSL, GnuTLS, NSS
-    install_rsacracker              # Powerful RSA cracker for CTFs. Supports RSA, X509, OPENSSH in PEM and DER formats.
+    safe_install crypto install_rsactftool              # attack rsa
+    safe_install crypto install_tls-map                 # CLI & library for mapping TLS cipher algorithm names: IANA, OpenSSL, GnuTLS, NSS
+    safe_install crypto install_rsacracker              # Powerful RSA cracker for CTFs. Supports RSA, X509, OPENSSH in PEM and DER formats.
+    print_failure_summary
     post_install
     end_time=$(date +%s)
     local elapsed_time=$((end_time - start_time))

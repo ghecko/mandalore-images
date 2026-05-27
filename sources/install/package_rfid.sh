@@ -49,7 +49,7 @@ function install_libnfc-crypto1-crack() {
     xz -d craptev1-v1.1.tar.xz crapto1-v3.3.tar.xz
     tar xvf craptev1-v1.1.tar
     tar xvf crapto1-v3.3.tar --one-top-level
-    make -j CFLAGS=-"-std=gnu99 -O3 -march=native -Wl,--allow-multiple-definition"
+    make -j CFLAGS="-std=gnu99 -O3 -Wl,--allow-multiple-definition"
     cp libnfc_crypto1_crack /opt/tools/bin
     add-aliases libnfc-crypto1-crack
     add-history libnfc-crypto1-crack
@@ -61,9 +61,9 @@ function install_mfdread() {
     colorecho "Installing mfdread"
     git -C /opt/tools/ clone --depth 1 https://github.com/zhovner/mfdread
     cd /opt/tools/mfdread || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install bitstring
+    uv pip install bitstring
     deactivate
     add-aliases mfdread
     add-history mfdread
@@ -90,14 +90,16 @@ function install_proxmark3() {
 # Package dedicated to RFID/NCF pentest tools
 function package_rfid() {
     set_env
+    init_failure_tracking
     local start_time
     local end_time
     start_time=$(date +%s)
-    install_rfid_apt_tools
-    install_mfoc                    # Tool for nested attack on Mifare Classic
-    install_libnfc-crypto1-crack    # tool for hardnested attack on Mifare Classic
-    install_mfdread                 # Tool to pretty print Mifare 1k/4k dumps
-    install_proxmark3               # Proxmark3 scripts
+    safe_install rfid install_rfid_apt_tools
+    safe_install rfid install_mfoc                    # Tool for nested attack on Mifare Classic
+    safe_install rfid install_libnfc-crypto1-crack    # tool for hardnested attack on Mifare Classic
+    safe_install rfid install_mfdread                 # Tool to pretty print Mifare 1k/4k dumps
+    safe_install rfid install_proxmark3               # Proxmark3 scripts
+    print_failure_summary
     post_install
     end_time=$(date +%s)
     local elapsed_time=$((end_time - start_time))

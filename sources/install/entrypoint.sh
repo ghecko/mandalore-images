@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -e
-
 source package_base.sh
 source package_most_used.sh
 source package_misc.sh

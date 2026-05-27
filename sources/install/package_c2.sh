@@ -8,9 +8,7 @@ source package_ad.sh
 function install_pwncat() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing pwncat"
-    pipx install --system-site-packages pwncat-cs
-    # Because Blowfish has been deprecated, downgrade cryptography version - https://github.com/paramiko/paramiko/issues/2038
-    pipx inject pwncat-cs cryptography==36.0.2
+    uv tool install pwncat-cs --with cryptography==36.0.2
     add-history pwncat
     add-test-command "pwncat-cs --version"
     add-to-list "pwncat,https://github.com/calebstewart/pwncat,A lightweight and versatile netcat alternative that includes various additional features."
@@ -20,15 +18,16 @@ function install_metasploit() {
     colorecho "Installing Metasploit"
     fapt libpcap-dev libpq-dev zlib1g-dev libsqlite3-dev
     git -C /opt/tools clone --depth 1 https://github.com/rapid7/metasploit-framework.git
-    cd /opt/tools/metasploit-framework || exit  # rvm gemset ruby-3.1.5@metasploit-framework should be auto setup here
+    cd /opt/tools/metasploit-framework || exit
 
     # Fix msfupdate git config requirements
     git config user.name "mandalore"
     git config user.email "mandalore@localhost"
 
-    rvm use 3.1.5@metasploit-framework --create
-
-    # install dep manager
+    # Metasploit needs Ruby 3.3.8 (installed by package_base.sh). `rvm use --create`
+    # auto-generates the gemset wrappers (visible as "generating metasploit-framework
+    # wrappers" in the build log), so no explicit `rvm wrapper` call is needed.
+    rvm use 3.3.8@metasploit-framework --create
     gem install bundler
     bundle install
 
@@ -37,10 +36,15 @@ function install_metasploit() {
     gem install rex-text
 
     # fixes 'You have already activated timeout 0.2.0, but your Gemfile requires timeout 0.4.1. Since timeout is a default gem, you can either remove your dependency on it or try updating to a newer version of bundler that supports timeout as a default gem.'
-    local temp_fix_limit="2026-04-01"
+    local temp_fix_limit="2026-09-01"
     if check_temp_fix_expiry "$temp_fix_limit"; then
       gem install timeout --version 0.4.1
     fi
+
+    # Cleanup duplicate stringio versions to silence 'Unresolved or ambiguous specs' warning
+    gem cleanup stringio
+
+    # Return to the default ruby for the rest of the build (set_ruby_env's choice).
     rvm use 3.2.2@default
 
     # msfdb setup
@@ -49,7 +53,8 @@ function install_metasploit() {
     chown -R postgres:postgres /var/lib/postgresql/.bundle
     chmod -R o+rx /opt/tools/metasploit-framework/
     chmod 444 /opt/tools/metasploit-framework/.git/index # fatal: .git/index: index file open failed: Permission denied
-    sudo -u postgres sh -c "git config --global --add safe.directory /opt/tools/metasploit-framework && /usr/local/rvm/gems/ruby-3.1.5@metasploit-framework/wrappers/bundle exec /opt/tools/metasploit-framework/msfdb init"
+    # Use the 3.3.8@metasploit-framework gemset wrapper (matches `rvm use` above).
+    sudo -u postgres sh -c "git config --global --add safe.directory /opt/tools/metasploit-framework && /usr/local/rvm/gems/ruby-3.3.8@metasploit-framework/wrappers/bundle exec /opt/tools/metasploit-framework/msfdb init"
     cp -r /var/lib/postgresql/.msf4 /root
 
     # Install the PEASS Ruby MSF module (https://github.com/peass-ng/PEASS-ng/tree/master/metasploit)
@@ -69,8 +74,7 @@ function install_metasploit() {
 function install_routersploit() {
     # CODE-CHECK-WHITELIST=add-history
     colorecho "Installing RouterSploit"
-    pipx install --system-site-packages routersploit
-    pipx inject routersploit colorama
+    uv tool install routersploit --with colorama
     add-aliases routersploit
     add-test-command "routersploit --help"
     add-to-list "routersploit,https://github.com/threat9/routersploit,Security audit tool for routers."
@@ -89,7 +93,7 @@ function install_sliver() {
     # We use the GitHub API to find the latest tag (e.g., v1.6.0)
     local repo="BishopFox/sliver"
     local latest_tag
-    latest_tag=$(curl -s "https://api.github.com/repos/$repo/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    latest_tag=$(gh_api "https://api.github.com/repos/$repo/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
     
     # Fallback if API fails
     if [[ -z "$latest_tag" ]]; then
@@ -147,9 +151,9 @@ function install_empire() {
     install_powershell
     git -C /opt/tools/ clone --depth 1 --recursive --shallow-submodules https://github.com/BC-SECURITY/Empire
     cd /opt/tools/Empire || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.13 --seed ./venv
     source ./venv/bin/activate
-    pip3 install .
+    uv pip install .
     deactivate
     # TODO : use mysql instead, need to configure that
     sed -i 's/use: mysql/use: sqlite/g' empire/server/config.yaml
@@ -200,9 +204,9 @@ function install_villain() {
     colorecho "Installing Villain"
     git -C /opt/tools/ clone --depth 1 https://github.com/t3l3machus/Villain
     cd /opt/tools/Villain || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r ./requirements.txt
+    uv pip install -r ./requirements.txt
     deactivate
     add-aliases villain
     add-history villain
@@ -213,16 +217,18 @@ function install_villain() {
 # Package dedicated to command & control frameworks
 function package_c2() {
     set_env
+    init_failure_tracking
     local start_time
     local end_time
     start_time=$(date +%s)
-    install_empire                  # Post-ex and adversary simulation framework
-    install_pwncat                  # netcat and rlwrap on steroids to handle revshells, automates a few things too
-    install_metasploit              # Offensive framework
-    install_routersploit            # Exploitation Framework for Embedded Devices
-    install_sliver                  # Sliver is an open source cross-platform adversary emulation/red team framework
-    install_havoc                   # C2 in Go
-    install_villain                 # C2 using hoaxShell in Python
+    safe_install c2 install_empire                  # Post-ex and adversary simulation framework
+    safe_install c2 install_pwncat                  # netcat and rlwrap on steroids to handle revshells, automates a few things too
+    safe_install c2 install_metasploit              # Offensive framework
+    safe_install c2 install_routersploit            # Exploitation Framework for Embedded Devices
+    safe_install c2 install_sliver                  # Sliver is an open source cross-platform adversary emulation/red team framework
+    safe_install c2 install_havoc                   # C2 in Go
+    safe_install c2 install_villain                 # C2 using hoaxShell in Python
+    print_failure_summary
     post_install
     end_time=$(date +%s)
     local elapsed_time=$((end_time - start_time))

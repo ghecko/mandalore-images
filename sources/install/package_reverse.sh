@@ -34,7 +34,9 @@ function install_pwntools() {
     git -C /opt/tools/ clone --depth 1 https://github.com/Gallopsled/pwntools
     cd /opt/tools/pwntools || exit
     sed -i 's/capstone[>=][^"]*/capstone==6.0.0a2/' pyproject.toml
-    pip install .
+    uv venv --python 3.11 --seed ./venv
+    source ./venv/bin/activate
+    uv pip install .
     add-test-command "python -c 'import pwn'"
     add-test-command "python3 -c 'import pwn'"
     add-to-list "pwntools,https://github.com/Gallopsled/pwntools,a CTF framework and exploit development library"
@@ -58,9 +60,9 @@ function install_angr() {
     fapt libffi-dev
     mkdir -p /opt/tools/angr || exit
     cd /opt/tools/angr || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip install angr
+    uv pip install angr
     deactivate
     add-aliases angr
     add-test-command "angr -c 'import angr'"
@@ -71,9 +73,9 @@ function install_checksec-py() {
     colorecho "Installing checksec.py"
     git -C /opt/tools/ clone --depth 1 https://github.com/Wenzel/checksec.py.git
     cd /opt/tools/checksec.py || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip install .
+    uv pip install .
     deactivate
     add-aliases checksec
     add-history checksec
@@ -95,7 +97,7 @@ function install_ghidra() {
     # CODE-CHECK-WHITELIST=add-test-command
     colorecho "Installing Ghidra"
     local ghidra_url
-    ghidra_url=$(curl --location --silent "https://api.github.com/repos/NationalSecurityAgency/ghidra/releases/latest" | grep 'browser_download_url' | grep -o 'https://[^"]*')
+    ghidra_url=$(gh_api "https://api.github.com/repos/NationalSecurityAgency/ghidra/releases/latest" | grep 'browser_download_url' | grep -o 'https://[^"]*')
     curl --location -o /tmp/ghidra.zip "$ghidra_url"
     unzip -q /tmp/ghidra.zip -d /opt/tools # -q because too much useless verbose
     mv -v /opt/tools/ghidra_* /opt/tools/ghidra # ghidra always has a version number in the unzipped folder, lets make it consistent
@@ -150,19 +152,21 @@ function install_pwninit() {
 # Package dedicated to reverse engineering tools
 function package_reverse() {
     set_env
+    init_failure_tracking
     local start_time
     local end_time
     start_time=$(date +%s)
-    install_reverse_apt_tools
-    install_pwntools                # CTF framework and exploit development library
-    install_pwndbg                  # Advanced Gnu Debugger
-    install_angr                    # Binary analysis
-    install_checksec-py             # Check security on binaries
-    install_radare2                 # Awesome debugger
-    install_ghidra
-    install_ida
-    install_jd-gui                  # Java decompiler
-    install_pwninit                 # Tool for automating starting binary exploit
+    safe_install reverse install_reverse_apt_tools
+    safe_install reverse install_pwntools                # CTF framework and exploit development library
+    safe_install reverse install_pwndbg                  # Advanced Gnu Debugger
+    safe_install reverse install_angr                    # Binary analysis
+    safe_install reverse install_checksec-py             # Check security on binaries
+    safe_install reverse install_radare2                 # Awesome debugger
+    safe_install reverse install_ghidra
+    safe_install reverse install_ida
+    safe_install reverse install_jd-gui                  # Java decompiler
+    safe_install reverse install_pwninit                 # Tool for automating starting binary exploit
+    print_failure_summary
     post_install
     end_time=$(date +%s)
     local elapsed_time=$((end_time - start_time))

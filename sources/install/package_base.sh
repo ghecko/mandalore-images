@@ -13,9 +13,9 @@ function install_exegol-history() {
     colorecho "Installing exegol-history"
     git -C /opt/tools/ clone --depth 1 https://github.com/ThePorgs/exegol-history
     cd /opt/tools/exegol-history || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
+    uv pip install -r requirements.txt
     deactivate
     add-aliases exegol-history
     add-history exegol-history
@@ -45,19 +45,14 @@ function install_go() {
     # CODE-CHECK-WHITELIST=add-aliases,add-to-list,add-history
     colorecho "Installing go (Golang)"
     asdf plugin add golang https://github.com/asdf-community/asdf-golang.git
-    # With golang 1.23 many package build are broken, temp fix to use 1.22.2 as golang latest
-    local temp_fix_limit="2026-04-01"
-    if check_temp_fix_expiry "$temp_fix_limit"; then
-      # 1.24.4 needed for BloodHound-CE
-      asdf install golang 1.24.4
-      # 1.23 needed by sensepost/ruler
-      asdf install golang 1.23.11
-      # 1.24 needed by BloodHound-CE
-      asdf install golang 1.24.5
-      # Default GO version: 1.22.2
-      asdf install golang 1.22.2
-      asdf set --home golang 1.22.2
-    fi
+    # 1.26.1 needed for ruler, BloodHound-CE, GoExec, s3scanner
+    asdf install golang 1.26.1
+    # 1.23.0 needed for bettercap, subzy
+    asdf install golang 1.23.0
+    # Default GO version: 1.22.2
+    asdf install golang 1.22.2
+
+    asdf set --home golang 1.22.2 1.23.0 1.26.1
 
     add-test-command "go version"
 }
@@ -92,40 +87,84 @@ function install_locales() {
     export LANGUAGE=en_US.UTF-8
 }
 
-function install_pyenv() {
+function install_python_versions() {
+    # CODE-CHECK-WHITELIST=add-aliases,add-history,add-to-list,add-test-command
+    colorecho "Installing Python versions with uv"
+    
+    # Python 2 support via system package (if available/needed)
+    # fapt python2 python2-dev || echo "Python 2 install failed or not found, skipping"
+
+    # Install Python versions using uv
+    # This downloads standalone python builds
+    # We install 3.10, 3.11, 3.12, 3.13
+    uv python install 3.10 3.11 3.12 3.13
+    
+    # We can set a preference, but uv usually picks the latest or specified one.
+    # To ensure 'python' or 'python3' uses a specific version globally with uv commands, 
+    # we can use 'uv python pin'. But for system-wide usage, we rely on uv's discovery.
+    
+    add-test-command "uv python list"
+    add-test-command "uv python find 3.11"
+}
+
+function install_pyenv_python2() {
     # CODE-CHECK-WHITELIST=add-aliases,add-history,add-to-list
-    colorecho "Installing pyenv"
-    fapt git curl build-essential
-    curl -o /tmp/pyenv.run https://pyenv.run
-    bash /tmp/pyenv.run
-    set_python_env
-    local v
-    colorecho "Installing python2 (latest)"
-    fapt libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev libncurses5-dev libncursesw5-dev libffi-dev liblzma-dev
-    # Don't think it's needed, but if something fails, use command below
-    # apt install xz-utils tk-dev
-    for v in $PYTHON_VERSIONS; do
-        colorecho "Installing python${v}"
-        pyenv install "$v"
-    done
-    # allowing python2, python3, python3.10, python3.11 and python3.13 to be found
-    #  --> python points to python3
-    #  --> python3 points to python3.11
-    #  --> python3.10 points to 3.10
-    #  --> python3.13 points to 3.13
-    #  --> python2 points to latest python2
-    # shellcheck disable=SC2086
-    pyenv global $PYTHON_VERSIONS
-    add-test-command "python --version"
-    add-test-command "pip --version"
-    add-test-command "python3 --version"
-    add-test-command "pip3 --version"
-    for v in $PYTHON_VERSIONS; do
-        add-test-command "python${v} --version"
-        add-test-command "pip${v} --version"
-    done
-    fapt python3-venv
-    add-test-command "python3 -m venv -h"
+    colorecho "Installing pyenv for Python 2.7.18"
+    
+    # 1. Prereqs for building Python 2
+    fapt git curl build-essential libssl-dev zlib1g-dev libbz2-dev \
+         libreadline-dev libsqlite3-dev libncurses5-dev libncursesw5-dev \
+         libffi-dev liblzma-dev python-is-python3
+
+    # 2. Install pyenv
+    export PYENV_ROOT="$HOME/.pyenv"
+    export PATH="$PYENV_ROOT/bin:$PATH"
+    
+    if [ ! -d "$PYENV_ROOT" ]; then
+        curl https://pyenv.run | bash
+    fi
+
+    # 3. Initialize pyenv for this session
+    eval "$(pyenv init -)"
+
+    # 4. Install Python 2.7.18
+    if ! pyenv versions | grep -q "2.7.18"; then
+        colorecho "Compiling Python 2.7.18..."
+        # CFLAGS needed for some modern compilers/openssl issues, though 2.7.18 covers most.
+        # Ensure we don't mess up system stuff.
+        pyenv install 2.7.18
+    else
+        colorecho "Python 2.7.18 already installed via pyenv."
+    fi
+
+    # 5. Set up symlinks/environment
+    # We DO NOT want to set 'pyenv global 2.7.18' because that might shadow 'python' -> 'python2' 
+    # if pyenv shims are in PATH before /usr/bin.
+    # Instead, we want 'python2' to be available explicitly.
+    
+    # Symlink the binary directly to /usr/local/bin/python2
+    local py2_bin="$HOME/.pyenv/versions/2.7.18/bin/python"
+    local pip2_bin="$HOME/.pyenv/versions/2.7.18/bin/pip"
+    
+    if [ -f "$py2_bin" ]; then
+        ln -sf "$py2_bin" /usr/local/bin/python2
+        ln -sf "$pip2_bin" /usr/local/bin/pip2
+        
+        colorecho "Python 2 available at /usr/local/bin/python2"
+        /usr/local/bin/python2 --version
+    else
+        criticalecho "Python 2 compilation failed or binary not found."
+    fi
+
+    # Install virtualenv in python2
+    /usr/local/bin/pip2 install virtualenv
+
+    # 6. Ensure 'python' points to python3 (already handled by python-is-python3 apt package above)
+    # But just in case:
+    if ! command -v python &> /dev/null; then
+        ln -s /usr/bin/python3 /usr/local/bin/python
+    fi
+
 }
 
 function install_firefox() {
@@ -134,7 +173,7 @@ function install_firefox() {
     fapt firefox-esr
     mkdir /opt/tools/firefox
     mv /root/sources/assets/firefox/* /opt/tools/firefox/
-    pip3 install -r /opt/tools/firefox/requirements.txt
+    uv pip install --system --break-system-packages -r /opt/tools/firefox/requirements.txt
     python3 /opt/tools/firefox/generate_policy.py
     add-history firefox
     add-test-command "cat /usr/lib/firefox-esr/distribution/policies.json|grep 'Mandalore'"
@@ -161,8 +200,7 @@ function install_rvm() {
     rvm autolibs read-fail
     rvm rvmrc warning ignore allGemfiles
     rvm use 3.2.2@default
-    rvm install ruby-3.1.2  # needed by cewl, pass-station, evil-winrm
-    rvm install ruby-3.1.5  # needed metasploit-framework
+    rvm install ruby-3.3.8 # Needed by metasploits
     rvm get head
     rvm cleanup all
     gem update
@@ -198,13 +236,15 @@ function install_ohmyzsh() {
     zsh -c "source ~/.oh-my-zsh/custom/plugins/zsh-nvm/zsh-nvm.plugin.zsh" # this is needed to start an instance of zsh to have the plugin set up
 }
 
-function install_pipx() {
-    # CODE-CHECK-WHITELIST=add-aliases,add-history,add-to-list
-    colorecho "Installing pipx"
-    pip3 install pipx
-    pipx ensurepath
-    add-test-command "pipx --version"
+function install_cargo_binstall() {
+    # CODE-CHECK-WHITELIST=add-test-command
+    colorecho "Installing cargo-binstall"
+    # Install cargo-binstall for faster rust tool installation (binary download instead of compile)
+    curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
+    add-test-command "cargo binstall --help"
 }
+
+
 
 function install_uv() {
     # CODE-CHECK-WHITELIST=add-test-command
@@ -221,9 +261,14 @@ function install_uv() {
 
     # Enable autocompletion for future interactive shells
     if command -v uv >/dev/null; then
+        echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+        echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
         echo 'eval "$(uv generate-shell-completion zsh)"' >> ~/.zshrc
         echo 'eval "$(uv generate-shell-completion bash)"' >> ~/.bashrc
     fi
+
+    # Add to current path for immediate use
+    export PATH="$HOME/.local/bin:$PATH"
 
     add-test-command "uv --version"
 }
@@ -231,10 +276,20 @@ function install_uv() {
 function install_pyftpdlib() {
     # CODE-CHECK-WHITELIST=add-history
     colorecho "Installing pyftpdlib"
-    pip3 install pyftpdlib
+    uv tool install pyftpdlib
     add-aliases pyftpdlib
     add-test-command "python3 -c 'import pyftpdlib'"
     add-to-list "pyftpdlib,https://github.com/giampaolo/pyftpdlib/,Extremely fast and scalable Python FTP server library"
+}
+
+function install_tldr() {
+    # CODE-CHECK-WHITELIST=add-history,add-test-command
+    colorecho "Installing tldr"
+    uv tool install tldr
+    export PATH="$HOME/.local/bin:$PATH"
+    tldr --update
+    add-history tldr
+    add-test-command "tldr --version"
 }
 
 function install_yarn() {
@@ -293,7 +348,7 @@ function install_mdcat() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing mdcat"
     source "$HOME/.cargo/env"
-    cargo install mdcat
+    cargo install mdcat --locked
     add-history mdcat
     add-test-command "mdcat --version"
     add-to-list "mdcat,https://github.com/swsnr/mdcat,Fancy cat for Markdown"
@@ -338,7 +393,7 @@ function install_java11() {
         criticalecho-noexit "This installation function doesn't support architecture $(uname -m)" && return
     fi
     local jdk_url
-    jdk_url=$(curl --location --silent "https://api.github.com/repos/adoptium/temurin11-binaries/releases" | grep 'browser_download_url.*jdk_'"$arch"'_linux.*tar.gz"' | grep -o 'https://[^"]*' | sort | tail -n1)
+    jdk_url=$(gh_api "https://api.github.com/repos/adoptium/temurin11-binaries/releases" | grep 'browser_download_url.*jdk_'"$arch"'_linux.*tar.gz"' | grep -o 'https://[^"]*' | sort | tail -n1)
     curl --location -o /tmp/openjdk11-jdk.tar.gz "$jdk_url"
     tar -xzf /tmp/openjdk11-jdk.tar.gz --directory /tmp
     mkdir -p "/usr/lib/jvm"
@@ -425,10 +480,10 @@ function install_asdf() {
     local URL
     if [[ $(uname -m) = 'x86_64' ]]
     then
-        URL=$(curl --location --silent "https://api.github.com/repos/asdf-vm/asdf/releases/latest" | grep 'browser_download_url.*asdf.*linux-amd64.tar.gz"' | grep -o 'https://[^"]*')
+        URL=$(gh_api "https://api.github.com/repos/asdf-vm/asdf/releases/latest" | grep 'browser_download_url.*asdf.*linux-amd64.tar.gz"' | grep -o 'https://[^"]*')
     elif [[ $(uname -m) = 'aarch64' ]]
     then
-        URL=$(curl --location --silent "https://api.github.com/repos/asdf-vm/asdf/releases/latest" | grep 'browser_download_url.*asdf.*linux-arm64.tar.gz"' | grep -o 'https://[^"]*')
+        URL=$(gh_api "https://api.github.com/repos/asdf-vm/asdf/releases/latest" | grep 'browser_download_url.*asdf.*linux-arm64.tar.gz"' | grep -o 'https://[^"]*')
     else
         criticalecho-noexit "This installation function doesn't support architecture $(uname -m)" && return
     fi
@@ -445,6 +500,14 @@ function install_asdf() {
     add-to-list "asdf,https://github.com/asdf-vm/asdf,Extendable version manager with support for ruby python go etc"
 }
 
+function install_pipx() {
+    # CODE-CHECK-WHITELIST=add-aliases,add-history,add-to-list
+    colorecho "Installing pipx"
+    pip3 install pipx --break-system-packages
+    pipx ensurepath
+    add-test-command "pipx --version"
+}
+
 # Package dedicated to the basic things the env needs
 function package_base() {
     local start_time
@@ -457,6 +520,8 @@ function package_base() {
     curl -sL https://git.io/vokNn -o /tmp/apt-fast-install.sh
     bash /tmp/apt-fast-install.sh
     deploy_mandalore
+    # Re-init failure tracking because deploy_mandalore wipes /.mandalore
+    init_failure_tracking
     fapt software-properties-common
     add_debian_repository_components
     cp -v /root/sources/assets/apt/sources.list.d/* /etc/apt/sources.list.d/
@@ -469,7 +534,7 @@ function package_base() {
     dos2unix ftp sshpass telnet nfs-common ncat netcat-traditional socat rdate putty \
     screen p7zip-full p7zip-rar unrar xz-utils xsltproc parallel tree ruby ruby-dev ruby-full bundler \
     nim perl libwww-perl openjdk-17-jdk openvpn openresolv \
-    logrotate tmux tldr bat libxml2-utils virtualenv chromium libsasl2-dev \
+    logrotate tmux bat libxml2-utils virtualenv chromium libsasl2-dev \
     libldap2-dev libssl-dev isc-dhcp-client sqlite3 dnsutils samba ssh snmp faketime php \
     python3 python3-dev grc emacs-nox xsel xxd libnss3-tools htop
     apt-mark hold tzdata  # Prevent apt upgrade error when timezone sharing is enable
@@ -481,19 +546,17 @@ function package_base() {
 
     install_asdf
 
+    # Install uv before Python versions
+    install_uv
+
+    # Install Python 2.7.18 via pyenv (for legacy tools)
+    install_pyenv_python2
+
     # setup Python environment
     # the order matters (if 2 is before 3, `python` will point to Python 2)
-    PYTHON_VERSIONS="3.11 3.12 3.13 3.10 2"
-    install_pyenv
-    pip2 install --no-cache-dir virtualenv
-    local v
-    for v in $PYTHON_VERSIONS; do
-        # shellcheck disable=SC2086
-        pip${v} install --upgrade pip
-        # shellcheck disable=SC2086
-        pip${v} install wheel
-    done
-    install_pipx
+    # setup Python environment using uv
+    install_python_versions
+    # install_pipx is removed in favor of `uv tool install`
 
     # change default shell
     chsh -s /bin/zsh
@@ -513,7 +576,6 @@ function package_base() {
 
     # Rust, Cargo, rvm
     install_rust_cargo
-    install_uv
     install_rvm                                         # Ruby Version Manager
 
     # java11 install, java21 install, and java17 as default
@@ -529,6 +591,7 @@ function package_base() {
     install_fzf                                         # Fuzzy finder
     add-history curl
     install_yarn
+    install_cargo_binstall
     install_pyftpdlib
     install_ultimate_vimrc                              # Make vim usable OOFB
     install_neovim
@@ -561,9 +624,7 @@ function package_base() {
     cp -v /root/sources/assets/shells/tmux.conf ~/.tmux.conf
     touch ~/.hushlogin
 
-    # TLDR
-    mkdir -p ~/.local/share/tldr
-    tldr -u
+    install_tldr
 
     # NVM (install in context)
     zsh -c "source ~/.zshrc && nvm install node && nvm use default"
@@ -578,7 +639,9 @@ function package_base() {
     add-test-command "python3 -c 'import hashlib;print(hashlib.new(\"md4\", \"1337\".encode()).digest())'"
 
     # Global python dependencies
-    pip3 install -r /root/sources/assets/python/requirements.txt
+    uv pip install --system --break-system-packages -r /root/sources/assets/python/requirements.txt
+
+    safe_install base install_pipx
 
     install_exegol-history
 

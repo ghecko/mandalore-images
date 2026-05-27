@@ -33,3 +33,82 @@ install_ligolo-ng
 ```
 
 This allows you to iterate instantly on syntax or logic errors.
+
+# GitHub token (recommended for full builds)
+
+A full build performs ~13 calls to `api.github.com` (to resolve "latest release" URLs for gitleaks, trufflehog, ghidra, asdf, Temurin, BloodHound-CE, ffuf, upx, CyberChef, etc.). Unauthenticated calls are rate-limited to **60 req/h per IP** — a full build routinely hits this and fails with HTTP 403 on a random subset of tools.
+
+Passing a GitHub Personal Access Token raises the limit to **5000 req/h** and removes this class of flakiness entirely.
+
+## Creating the token
+
+Create a [classic PAT](https://github.com/settings/tokens) with:
+
+- **Note**: e.g. `mandalore-build`
+- **Expiration**: 90 days or longer (depending on your rotation policy)
+- **Scopes**: **none** — leave every checkbox unchecked. The token is only used to read public release metadata, which requires no scope; authentication alone is enough to lift the rate limit. (If your org policy refuses a no-scope token, tick `public_repo` only.)
+
+Treat the token as a secret — never commit it.
+
+## Using the token
+
+The token is wired through every dockerfile as an `ARG GITHUB_TOKEN` and exposed at build-time via `ENV`. The `gh_api()` helper in `sources/install/common.sh` reads `GITHUB_TOKEN` and injects an `Authorization: Bearer` header when set — if the variable is empty, calls fall back to unauthenticated and the build still works (it just risks 403s under load).
+
+Pass the token at build time:
+
+```bash
+# Linux / macOS
+export GH_TOKEN=ghp_...
+docker build --build-arg GITHUB_TOKEN="$GH_TOKEN" -f base.dockerfile -t lksec/mandalore-base .
+```
+
+```powershell
+# Windows PowerShell
+$env:GH_TOKEN = "ghp_..."
+docker build --build-arg GITHUB_TOKEN=$env:GH_TOKEN -f base.dockerfile -t lksec/mandalore-base .
+```
+
+The `Makefile` targets should be invoked with the same `--build-arg`; if you use them frequently, export `GH_TOKEN` in your shell profile or pass it via your CI's secret manager.
+
+# Build Error Handling
+
+The build system includes resilient error handling to avoid aborting the entire build when individual tools fail.
+
+## How it works
+
+- **Network-only retries**: Commands like `curl`, `wget`, `git`, `pip`, etc. are automatically retried (with exponential backoff) only when the failure is network-related (DNS resolution, timeouts, connection resets...). Non-network failures (compilation errors, missing dependencies...) fail immediately without wasting time on retries.
+- **Skip & log**: When a tool fails for a non-network reason, the build skips it and continues to the next tool. The full output is saved to `/.mandalore/build_failures/<package>__<tool>.log` inside the container.
+- **End-of-build summary**: At the end of each package and at the very end of `post_build`, a summary is printed listing all failed tools per package.
+
+## Retrieving failure information
+
+The failure summary is printed to **stdout** at the end of the build, so it's visible in your terminal. For example, after `make base && make full`, the last lines will show:
+
+```
+╔══════════════════════════════════════════════════╗
+║     GLOBAL BUILD FAILURE SUMMARY                ║
+╠══════════════════════════════════════════════════╣
+║  Total failed tools: 3                           ║
+╚══════════════════════════════════════════════════╝
+
+Package 'ad': 2 tool(s) failed:
+  1. bloodyAD
+  2. certipy
+
+Package 'web': 1 tool(s) failed:
+  1. caido
+```
+
+To retrieve the **detailed per-tool logs** from the built image:
+
+```bash
+# View the summary
+docker run --rm lksec/mandalore-full cat /.mandalore/build_failures/SUMMARY.txt
+
+# Copy all failure logs to your host
+ID=$(docker create lksec/mandalore-full)
+docker cp "$ID:/.mandalore/build_failures" ./build_failures
+docker rm "$ID"
+```
+
+> **Note**: `package_base` does **not** use skip & log — it contains foundational system setup (shell, languages, etc.) where failures should abort the build.

@@ -32,7 +32,7 @@ function install_pyrit() {
     # steps to remove temp fix:
     #  1. try to install pyrit with git clone + venv + setup.py install with python2 or 3 (without the git patch)
     #  2. if it works, remove the temp fix (and probably the patch as well)
-    local temp_fix_limit="2026-04-01"
+    local temp_fix_limit="2026-09-01"
     if [ "$(date +%Y%m%d)" -gt "$(date -d $temp_fix_limit +%Y%m%d)" ]; then
       criticalecho "Temp fix expired. Exiting."
     else
@@ -42,7 +42,7 @@ function install_pyrit() {
     fi
     cd /opt/tools/Pyrit || exit
     fapt libpq-dev
-    virtualenv --python python2 ./venv
+    python2 -m virtualenv --python python2 ./venv
     source ./venv/bin/activate
     pip2 install psycopg2-binary scapy
     deactivate
@@ -65,7 +65,7 @@ function install_wifite2() {
     colorecho "Installing wifite2"
     git -C /opt/tools/ clone --depth 1 https://github.com/kimocoder/wifite2.git
     cd /opt/tools/wifite2 || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     catch_and_retry ./venv/bin/python3 setup.py install
     add-aliases wifite
     add-history wifite
@@ -78,8 +78,9 @@ function install_bettercap() {
     fapt libpcap-dev libusb-1.0-0-dev libnetfilter-queue-dev
     mkdir -p /opt/tools/bettercap || exit
     cd /opt/tools/bettercap || exit
-    # Custom install because it requires go >= 1.23.0 (default running go is 1.22.2)
-    asdf set golang 1.24.5
+    # Requires go >= 1.23.0 (default running go is 1.22.2).
+    # 1.26.1 is installed by package_base.sh; 1.24.5 was never installed.
+    asdf set golang 1.26.1
     mkdir -p .go/bin
     GOBIN=/opt/tools/bettercap/.go/bin go install -v github.com/bettercap/bettercap@latest
     /opt/tools/bettercap/.go/bin/bettercap -eval "caplets.update; ui.update; q"
@@ -123,16 +124,18 @@ function install_hcxdumptool() {
 # Package dedicated to wifi pentest tools
 function package_wifi() {
     set_env
+    init_failure_tracking
     local start_time
     local end_time
     start_time=$(date +%s)
-    install_wifi_apt_tools
-    install_pyrit                   # Databases of pre-computed WPA/WPA2-PSK authentication phase
-    install_wifite2                 # Retrieving password of a wireless access point (router)
+    safe_install wifi install_wifi_apt_tools
+    safe_install wifi install_pyrit                   # Databases of pre-computed WPA/WPA2-PSK authentication phase
+    safe_install wifi install_wifite2                 # Retrieving password of a wireless access point (router)
     # install_hostapd-wpe           # Modified hostapd to facilitate AP impersonation attacks, FIXME broken install, need official release of hostapd-2.6.tar.gz
-    install_bettercap               # MiTM tool
-    install_hcxtools                # Tools for PMKID and other wifi attacks
-    install_hcxdumptool             # Small tool to capture packets from wlan devices
+    safe_install wifi install_bettercap               # MiTM tool
+    safe_install wifi install_hcxtools                # Tools for PMKID and other wifi attacks
+    safe_install wifi install_hcxdumptool             # Small tool to capture packets from wlan devices
+    print_failure_summary
     post_install
     end_time=$(date +%s)
     local elapsed_time=$((end_time - start_time))

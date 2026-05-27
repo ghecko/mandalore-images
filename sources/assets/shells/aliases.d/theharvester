@@ -1,0 +1,2 @@
+alias theHarvester='/opt/tools/theHarvester/venv/bin/theHarvester'
+alias theharvester='theHarvester'

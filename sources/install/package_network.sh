@@ -135,7 +135,7 @@ function install_autorecon() {
     git -C /opt/tools clone --depth 1 https://gitlab.com/kalilinux/packages/tnscmd10g.git
     ln -sv /opt/tools/tnscmd10g/tnscmd10g /usr/bin/tnscmd10g
     fapt dnsrecon wkhtmltopdf
-    pipx install --system-site-packages git+https://github.com/Tib3rius/AutoRecon
+    uv tool install git+https://github.com/Tib3rius/AutoRecon
     add-history autorecon
     # test below cannot work because test runner cannot have a valid display
     # add-test-command "autorecon --version"
@@ -147,9 +147,9 @@ function install_dnschef() {
     colorecho "Installing DNSChef"
     git -C /opt/tools/ clone --depth 1 https://github.com/iphelix/dnschef
     cd /opt/tools/dnschef || exit
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r requirements.txt
+    uv pip install -r requirements.txt
     deactivate
     add-aliases dnschef
     add-history dnschef
@@ -160,7 +160,7 @@ function install_dnschef() {
 function install_divideandscan() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing DivideAndScan"
-    pipx install --system-site-packages git+https://github.com/snovvcrash/DivideAndScan
+    uv tool install git+https://github.com/snovvcrash/DivideAndScan
     add-history divideandscan
     add-test-command "divideandscan --help"
     add-to-list "divideandscan,https://github.com/snovvcrash/divideandscan,Advanced subdomain scanner"
@@ -180,7 +180,7 @@ function install_chisel() {
 function install_sshuttle() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing sshtuttle"
-    pipx install --system-site-packages git+https://github.com/sshuttle/sshuttle.git
+    uv tool install git+https://github.com/sshuttle/sshuttle.git
     add-history sshuttle
     add-test-command "sshuttle --version"
     add-to-list "sshuttle,https://github.com/sshuttle/sshuttle,Transparent proxy server that tunnels traffic through an SSH server"
@@ -191,9 +191,9 @@ function install_eaphammer() {
     git -C /opt/tools clone --depth 1 https://github.com/s0lst1c3/eaphammer.git
     cd /opt/tools/eaphammer || exit
     fapt apache2 dnsmasq libssl-dev libnfnetlink-dev libnl-3-dev libnl-genl-3-dev libcurl4-openssl-dev zlib1g-dev libpcap-dev
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    pip3 install -r pip.req
+    uv pip install -r pip.req
     deactivate
     add-aliases eaphammer
     add-history eaphammer
@@ -204,7 +204,7 @@ function install_eaphammer() {
 function install_fierce() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing fierce"
-    pipx install --system-site-packages git+https://github.com/mschwager/fierce
+    uv tool install git+https://github.com/mschwager/fierce
     add-history fierce
     add-test-command "fierce --help"
     add-to-list "fierce,https://github.com/mschwager/fierce,A DNS reconnaissance tool for locating non-contiguous IP space"
@@ -351,22 +351,19 @@ function install_rustscan() {
 function install_legba() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing legba"
-    fapt libsmbclient-dev libsmbclient
-    git -C /opt/tools/ clone --depth 1 https://github.com/evilsocket/legba
-    cd /opt/tools/legba || exit
-    cargo build --release
-    # Clean dependencies used to build the binary
-    rm -rf target/release/{deps,build,.fingerprint}
-    ln -s /opt/tools/legba/target/release/legba /opt/tools/bin/legba
+    # clang and llvm-dev required for bindgen (libclang)
+    fapt libsmbclient-dev libsmbclient libclang-dev
+    source "$HOME/.cargo/env"
+    cargo install legba --locked
     add-history legba
     add-test-command "legba --help"
-    add-to-list "legba,https://github.com/evilsocket/legba,a multiprotocol credentials bruteforcer / password sprayer and enumerator built with Rust"
+    add-to-list "legba,https://github.com/evilsocket/legba,A multiprotocol credentials bruteforcer / password sprayer and enumerator."
 }
 
 function install_ssh-audit() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing ssh-audit"
-    pipx install --system-site-packages git+https://github.com/jtesta/ssh-audit
+    uv tool install git+https://github.com/jtesta/ssh-audit
     add-history ssh-audit
     add-test-command "ssh-audit --help"
     add-to-list "ssh-audit,https://github.com/jtesta/ssh-audit,ssh-audit is a tool to test SSH server configuration for best practices."
@@ -375,30 +372,32 @@ function install_ssh-audit() {
 # Package dedicated to network pentest tools
 function package_network() {
     set_env
+    init_failure_tracking
     local start_time
     local end_time
     start_time=$(date +%s)
-    install_network_apt_tools
-    install_proxychains             # Network tool
-    install_remmina                 # Remote desktop client
-    install_nmap                    # Port scanner
-    install_nmap-parse-output       # Parse nmap XML files
-    install_udpx
-    install_autorecon               # External recon tool
-    install_dnschef                 # Python DNS server
-    install_divideandscan           # Python project to automate port scanning routine
-    install_chisel                  # Fast TCP/UDP tunnel over HTTP
-    install_sshuttle                # Transparent proxy over SSH
-    install_eaphammer               # EAPHammer is a toolkit for performing targeted evil twin attacks against WPA2-Enterprise networks.
-    install_fierce
+    safe_install network install_network_apt_tools
+    safe_install network install_proxychains             # Network tool
+    safe_install network install_remmina                 # Remote desktop client
+    safe_install network install_nmap                    # Port scanner
+    safe_install network install_nmap-parse-output       # Parse nmap XML files
+    safe_install network install_udpx
+    safe_install network install_autorecon               # External recon tool
+    safe_install network install_dnschef                 # Python DNS server
+    safe_install network install_divideandscan           # Python project to automate port scanning routine
+    safe_install network install_chisel                  # Fast TCP/UDP tunnel over HTTP
+    safe_install network install_sshuttle                # Transparent proxy over SSH
+    safe_install network install_eaphammer               # EAPHammer is a toolkit for performing targeted evil twin attacks against WPA2-Enterprise networks.
+    safe_install network install_fierce
     # install_odat                  # Oracle Database Attacking Tool, FIXME
-    install_dnsx                    # Fast and multi-purpose DNS toolkit
-    install_shuffledns              # Wrapper around massdns to enumerate valid subdomains
-    install_tailscale               # Zero config VPN for building secure networks
-    install_ligolo-ng               # Tunneling tool that uses a TUN interface
-    install_rustscan
-    install_legba                   # Login Scanner
-    install_ssh-audit               # SSH server audit
+    safe_install network install_dnsx                    # Fast and multi-purpose DNS toolkit
+    safe_install network install_shuffledns              # Wrapper around massdns to enumerate valid subdomains
+    safe_install network install_tailscale               # Zero config VPN for building secure networks
+    safe_install network install_ligolo-ng               # Tunneling tool that uses a TUN interface
+    safe_install network install_rustscan
+    safe_install network install_legba                   # Login Scanner
+    safe_install network install_ssh-audit               # SSH server audit
+    print_failure_summary
     post_install
     end_time=$(date +%s)
     local elapsed_time=$((end_time - start_time))

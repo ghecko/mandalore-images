@@ -20,11 +20,10 @@ function install_wordlists_apt_tools() {
 
 function install_cewl() {
     colorecho "Installing cewl"
-    rvm use 3.1.2@cewl --create # currently does not support a version higher than 3.1.2
+    rvm use 3.2.2@cewl --create
     gem install mime mime-types mini_exiftool nokogiri rubyzip spider
     git -C /opt/tools clone --depth 1 https://github.com/digininja/CeWL.git
     bundle install --gemfile /opt/tools/CeWL/Gemfile
-    rvm use 3.2.2@default
     add-aliases cewl
     add-history cewl
     add-test-command "cewl --help"
@@ -34,7 +33,7 @@ function install_cewl() {
 function install_cewler() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing cewler"
-    pipx install --system-site-packages cewler
+    uv tool install cewler
     add-history cewler
     add-test-command "cewler --output cewler.txt https://thehacker.recipes/"
     add-to-list "cewler,https://github.com/roys/cewler,CeWL alternative in Python"
@@ -59,9 +58,8 @@ function install_seclists() {
 
 function install_pass_station() {
     colorecho "Installing Pass Station"
-    rvm use 3.1.2@pass-station --create # currently does not support a version higher than 3.1.2
+    rvm use 3.2.2@pass-station --create # currently does not support a version higher than 3.1.2
     gem install pass-station
-    rvm use 3.1.2@default
     add-aliases pass-station
     add-history pass-station
     add-test-command "pass-station --help"
@@ -167,18 +165,20 @@ function install_rules(){
 # Package dedicated to the installation of wordlists and tools like wl generators
 function package_wordlists() {
     set_env
+    init_failure_tracking
     local start_time
     local end_time
     start_time=$(date +%s)
-    install_wordlists_apt_tools
-    install_cewl                    # Wordlist generator
-    install_cewler                  # cewl alternative in Python
-    install_seclists                # Awesome wordlists
-    install_pass_station            # Default credentials database
-    install_username-anarchy        # Generate possible usernames based on heuristics
-    install_genusernames
-    install_onelistforall
-    install_rules
+    safe_install wordlists install_wordlists_apt_tools
+    safe_install wordlists install_cewl                    # Wordlist generator
+    safe_install wordlists install_cewler                  # cewl alternative in Python
+    safe_install wordlists install_seclists                # Awesome wordlists
+    safe_install wordlists install_pass_station            # Default credentials database
+    safe_install wordlists install_username-anarchy        # Generate possible usernames based on heuristics
+    safe_install wordlists install_genusernames
+    safe_install wordlists install_onelistforall
+    safe_install wordlists install_rules
+    print_failure_summary
     post_install
     end_time=$(date +%s)
     local elapsed_time=$((end_time - start_time))

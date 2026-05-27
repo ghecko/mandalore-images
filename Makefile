@@ -1,6 +1,11 @@
 # Global vars
-VERSION ?= 1.1.0
+VERSION ?= 1.2.0
 BUILD_DATE ?= $(shell date -u +%Y-%m-%d)
+
+# GitHub PAT to dodge api.github.com rate-limit (60 -> 5000 req/h).
+# Reads from $GITHUB_TOKEN by default, falls back to $GH_TOKEN for convenience.
+# Override on the command line: make full GITHUB_TOKEN=ghp_xxx
+GITHUB_TOKEN ?= $(GH_TOKEN)
 
 # List of image variants to build
 VARIANTS := full web light
@@ -31,6 +36,7 @@ base:
 		--build-arg VERSION=$(VERSION) \
 		--build-arg BUILD_DATE=$(BUILD_DATE) \
 		--build-arg TAG=base \
+		--build-arg GITHUB_TOKEN=$(GITHUB_TOKEN) \
 		-f base.dockerfile \
 		-t lksec/mandalore-base .
 
@@ -41,6 +47,7 @@ full web light: check_temp_fix_limits
 			--build-arg VERSION=$(VERSION) \
 			--build-arg BUILD_DATE=$(BUILD_DATE) \
 			--build-arg TAG=$@ \
+			--build-arg GITHUB_TOKEN=$(GITHUB_TOKEN) \
 			-f $@.dockerfile \
 			-t lksec/mandalore:$@ .
 

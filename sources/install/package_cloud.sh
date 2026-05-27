@@ -53,7 +53,7 @@ function install_awscli() {
 function install_scout() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing ScoutSuite"
-    pipx install --system-site-packages scoutsuite
+    uv tool install scoutsuite
     add-history scout
     add-test-command "scout --help"
     add-to-list "scout,https://github.com/nccgroup/ScoutSuite,Scout Suite is an open source multi-cloud security-auditing tool which enables security posture assessment of cloud environments."
@@ -62,7 +62,7 @@ function install_scout() {
 function install_cloudsplaining() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing Cloudsplaining"
-    pipx install --system-site-packages cloudsplaining
+    uv tool install cloudsplaining
     add-history cloudsplaining
     add-test-command "cloudsplaining --help"
     add-to-list "cloudsplaining,https://github.com/salesforce/cloudsplaining,AWS IAM Security Assessment tool that identifies violations of least privilege and generates a risk-prioritized report."
@@ -81,7 +81,7 @@ function install_cloudsploit() {
 function install_prowler() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing Prowler"
-    pipx install --system-site-packages prowler
+    uv tool install prowler
     add-history prowler
     add-test-command "prowler -h"
     add-to-list "prowler,https://github.com/prowler-cloud/prowler,Perform Cloud Security best practices assessments / audits / incident response / compliance / continuous monitoring / hardening and forensics readiness."
@@ -93,10 +93,9 @@ function install_cloudmapper() {
     cd /opt/tools/cloudmapper || exit
     cp -v /root/sources/assets/patches/cloudmapper.patch cloudmapper.patch
     git apply --verbose cloudmapper.patch
-    python3 -m venv --system-site-packages ./venv
+    uv venv --python 3.9 --system-site-packages ./venv
     source ./venv/bin/activate
-    pip3 install wheel
-    pip3 install -r requirements.txt
+    uv pip install -r requirements.txt
     deactivate
     add-aliases cloudmapper
     add-history cloudmapper
@@ -119,17 +118,19 @@ function install_azure_cli() {
 # Package dedicated to cloud tools
 function package_cloud() {
     set_env
+    init_failure_tracking
     local start_time
     local end_time
     start_time=$(date +%s)
-    install_kubectl
-    install_awscli
-    install_scout           # Multi-Cloud Security Auditing Tool
-    install_cloudsplaining
-    install_cloudsploit
-    install_prowler
-    install_cloudmapper
-    install_azure_cli       # Command line for Azure
+    safe_install cloud install_kubectl
+    safe_install cloud install_awscli
+    safe_install cloud install_scout           # Multi-Cloud Security Auditing Tool
+    safe_install cloud install_cloudsplaining
+    safe_install cloud install_cloudsploit
+    safe_install cloud install_prowler
+    safe_install cloud install_cloudmapper
+    safe_install cloud install_azure_cli       # Command line for Azure
+    print_failure_summary
     post_install
     end_time=$(date +%s)
     local elapsed_time=$((end_time - start_time))

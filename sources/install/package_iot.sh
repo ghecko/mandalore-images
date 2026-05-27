@@ -21,10 +21,12 @@ function install_iot_apt_tools() {
 # Package dedicated to IoT tools
 function package_iot() {
     set_env
+    init_failure_tracking
     local start_time
     local end_time
     start_time=$(date +%s)
-    install_iot_apt_tools
+    safe_install iot install_iot_apt_tools
+    print_failure_summary
     post_install
     end_time=$(date +%s)
     local elapsed_time=$((end_time - start_time))
