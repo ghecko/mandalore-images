@@ -546,12 +546,14 @@ function install_patator() {
     fapt libmariadb-dev libcurl4-openssl-dev libssl-dev ldap-utils libpq-dev ike-scan unzip default-jdk libsqlite3-dev libsqlcipher-dev
     git -C /opt/tools clone --depth 1 https://github.com/lanjelot/patator.git
     cd /opt/tools/patator || exit
-    # Python 3.11: cx_Oracle 8.3 (pinned in patator's requirements.txt) uses the legacy
-    # `pkg_resources` API that was removed in Python 3.13 + setuptools >= 81.
-    # 3.11 ships `pkg_resources` and builds cx_Oracle cleanly without further patching.
-    uv venv --python 3.11 --seed ./venv
+    # Patator upstream's pyproject.toml requires Python >= 3.13 (telnetlib-313-and-up dep),
+    # so 3.11 is out. On 3.13, cx_Oracle 8.3 (pinned in requirements.txt) needs the
+    # legacy `pkg_resources` API which was removed from setuptools 81. Pin setuptools<81
+    # in the venv and use --no-build-isolation so cx_Oracle's setup.py finds it.
+    uv venv --python 3.13 --seed ./venv
     source ./venv/bin/activate
-    uv pip install -r requirements.txt
+    uv pip install 'setuptools<81' wheel
+    uv pip install --no-build-isolation -r requirements.txt
     deactivate
     add-aliases patator
     add-history patator
