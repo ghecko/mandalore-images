@@ -720,7 +720,8 @@ function install_neo4j() {
     fapt gnupg libgtk2.0-bin libcanberra-gtk3-module libx11-xcb1 libva-glx2 libgl1 libglx-mesa0 libgl1-mesa-dri libasound2t64 libxss1 neo4j
     # TODO: when temporary fix is not needed anymore add --> neo4j-admin dbms set-initial-password mandalore4thewin
     # TODO: when temporary fix is not needed anymore remove following line
-    neo4j-admin set-initial-password mandalore4thewin
+    # neo4j 4.4 needs Java 11 (UseBiasedLocking was removed in Java 18; default java is 21)
+    JAVA_HOME=/usr/lib/jvm/java-11-openjdk neo4j-admin set-initial-password mandalore4thewin
     mkdir -p /usr/share/neo4j/logs/
     touch /usr/share/neo4j/logs/neo4j.log
     add-aliases neo4j
