@@ -656,9 +656,9 @@ function install_ssrfmap() {
     colorecho "Installing SSRFmap"
     git -C /opt/tools/ clone --depth 1 https://github.com/swisskyrepo/SSRFmap
     cd /opt/tools/SSRFmap || exit
-    uv venv --python 3.11 --seed ./venv
+    uv venv --python 3.13 --seed ./venv
     source ./venv/bin/activate
-    uv pip install -r requirements.txt
+    uv pip install -r pyproject.toml
     deactivate
     add-aliases ssrfmap
     add-history ssrfmap

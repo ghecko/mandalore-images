@@ -96,10 +96,12 @@ function install_mobsf() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing Mobile Security Framework"
     # wkhtmltopdf no longer needed: MobSF generates PDF reports with xhtml2pdf
-    fapt libxmlsec1 libxmlsec1-dev
+    fapt libxmlsec1 libxmlsec1-dev libxml2-dev libxslt1-dev
     git -C /tmp clone --depth 1 https://github.com/MobSF/Mobile-Security-Framework-MobSF MobSF
     # yara-python-dex is be needed for ARM64
-    uv tool install /tmp/MobSF --with setuptools --with git+https://github.com/MobSF/yara-python-dex.git --with xmlsec==1.3.14 --no-binary-package xmlsec
+    # xmlsec 1.3.14 fails to build with GCC >= 14 (incompatible-pointer-types is now an error).
+    # lxml is built from source too, otherwise its bundled libxml2 mismatches the system one used by xmlsec.
+    CFLAGS="-Wno-error=incompatible-pointer-types" uv tool install /tmp/MobSF --with setuptools --with git+https://github.com/MobSF/yara-python-dex.git --with xmlsec==1.3.14 --no-binary-package xmlsec --no-binary-package lxml
     
     # Use 'command uv' to bypass the wrapper that adds logging to stdout
     local uv_tool_dir

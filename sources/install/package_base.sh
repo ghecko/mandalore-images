@@ -495,7 +495,8 @@ function install_asdf() {
 function install_pipx() {
     # CODE-CHECK-WHITELIST=add-aliases,add-history,add-to-list
     colorecho "Installing pipx"
-    pip3 install pipx --break-system-packages
+    # pip3 can't upgrade Debian's python3-platformdirs on trixie: use the distro package
+    fapt pipx
     pipx ensurepath
     add-test-command "pipx --version"
 }

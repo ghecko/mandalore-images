@@ -47,6 +47,9 @@ function install_metasploit() {
     chown -R postgres:postgres /var/lib/postgresql/.bundle
     chmod -R o+rx /opt/tools/metasploit-framework/
     chmod 444 /opt/tools/metasploit-framework/.git/index # fatal: .git/index: index file open failed: Permission denied
+    # Rails >= 8.1 writes tmp/local_secret.txt during `msfdb init`, which runs as postgres
+    mkdir -p /opt/tools/metasploit-framework/tmp
+    chown postgres:postgres /opt/tools/metasploit-framework/tmp
     # Use the 3.3.8@metasploit-framework gemset wrapper (matches `rvm use` above).
     sudo -u postgres sh -c "git config --global --add safe.directory /opt/tools/metasploit-framework && /usr/local/rvm/gems/ruby-3.3.8@metasploit-framework/wrappers/bundle exec /opt/tools/metasploit-framework/msfdb init"
     cp -r /var/lib/postgresql/.msf4 /root
@@ -135,8 +138,6 @@ function install_sliver() {
 
 function install_empire() {
     colorecho "Installing Empire"
-    wget -O /tmp/packages-microsoft-prod.deb https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb
-    dpkg -i /tmp/packages-microsoft-prod.deb
     fapt apt-transport-https libicu-dev xclip zip
     # Installing .NET 6.0 SDK
     wget -O /tmp/dotnet-install.sh https://dot.net/v1/dotnet-install.sh
