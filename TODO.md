@@ -26,3 +26,9 @@ installable with `gh_release_binary` (see `sources/install/common.sh`).
 | goLAPS | LAPS getter/setter | pyLAPS |
 | keytab | Work with Kerberos keytab files | - |
 | sidtool / ComputeSIDFromServiceName | SID utilities | - |
+
+## BloodHound CE: PostgreSQL graph driver
+
+BloodHound CE can store the graph in PostgreSQL (`bhe_graph_driver=pg`) instead of neo4j.
+Test it to drop neo4j 4.4 and the Temurin Java 11 it needs (UseBiasedLocking breaks on Java >= 18).
+Upstream still pins `neo4j:4.4.42` in its docker-compose (checked 2026-11-19), so we stay on 4.4 until then.
