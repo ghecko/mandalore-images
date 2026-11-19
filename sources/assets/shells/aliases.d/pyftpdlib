@@ -1,1 +1,1 @@
-alias ftp-server='python3 -m pyftpdlib'
+alias ftp-server='$(uv tool dir)/pyftpdlib/bin/python -m pyftpdlib'

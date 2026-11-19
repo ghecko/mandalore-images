@@ -1,0 +1,2 @@
+function exegol-history { /opt/tools/exegol-history/venv/bin/exegol-history "$@" && exec zsh }
+alias exh="exegol-history"
