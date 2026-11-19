@@ -1,5 +1,5 @@
 # Global vars
-VERSION ?= 1.2.0
+VERSION ?= 2.0.0
 BUILD_DATE ?= $(shell date -u +%Y-%m-%d)
 
 # GitHub PAT to dodge api.github.com rate-limit (60 -> 5000 req/h).
