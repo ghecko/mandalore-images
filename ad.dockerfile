@@ -1,11 +1,10 @@
+# syntax=docker/dockerfile:1
 # Author: The Mandalore Project
 FROM lksec/mandalore-base
 
 ARG TAG
 ARG VERSION
 ARG BUILD_DATE
-ARG GITHUB_TOKEN=""
-ENV GITHUB_TOKEN="${GITHUB_TOKEN}"
 
 LABEL org.mandalore.tag="${TAG}"
 LABEL org.mandalore.version="${VERSION}"
@@ -18,15 +17,15 @@ WORKDIR /root/sources/install
 
 RUN echo "${TAG}-${VERSION}" > /opt/.mandalore_version
 RUN chmod +x entrypoint.sh
-RUN ./entrypoint.sh package_base
-RUN ./entrypoint.sh package_desktop
-RUN ./entrypoint.sh package_misc
-RUN ./entrypoint.sh package_c2
-RUN ./entrypoint.sh package_wordlists
-RUN ./entrypoint.sh package_cracking
-RUN ./entrypoint.sh package_web
-RUN ./entrypoint.sh package_ad
-RUN ./entrypoint.sh post_build
+RUN --mount=type=secret,id=github_token,env=GITHUB_TOKEN ./entrypoint.sh package_base
+RUN --mount=type=secret,id=github_token,env=GITHUB_TOKEN ./entrypoint.sh package_desktop
+RUN --mount=type=secret,id=github_token,env=GITHUB_TOKEN ./entrypoint.sh package_misc
+RUN --mount=type=secret,id=github_token,env=GITHUB_TOKEN ./entrypoint.sh package_c2
+RUN --mount=type=secret,id=github_token,env=GITHUB_TOKEN ./entrypoint.sh package_wordlists
+RUN --mount=type=secret,id=github_token,env=GITHUB_TOKEN ./entrypoint.sh package_cracking
+RUN --mount=type=secret,id=github_token,env=GITHUB_TOKEN ./entrypoint.sh package_web
+RUN --mount=type=secret,id=github_token,env=GITHUB_TOKEN ./entrypoint.sh package_ad
+RUN --mount=type=secret,id=github_token,env=GITHUB_TOKEN ./entrypoint.sh post_build
 
 WORKDIR /workspace
 
