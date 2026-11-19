@@ -126,7 +126,7 @@ function install_theharvester() {
     colorecho "Installing theHarvester"
     git -C /opt/tools/ clone --depth 1 https://github.com/laramies/theHarvester
     cd /opt/tools/theHarvester || exit
-    uv venv --python 3.13 --seed ./venv
+    uv venv --python 3.14 --seed ./venv
     source ./venv/bin/activate
     uv pip install .
     deactivate
@@ -211,7 +211,7 @@ function install_linkedin2username() {
     uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
     # Upstream no longer ships requirements.txt — install deps directly.
-    uv pip install requests beautifulsoup4
+    uv pip install requests beautifulsoup4 selenium
     deactivate
     add-aliases linkedin2username
     add-history linkedin2username
@@ -244,8 +244,8 @@ function install_carbon14() {
     cd /opt/tools/Carbon14 || exit
     uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    # Upstream no longer ships requirements.txt — install deps directly.
-    uv pip install requests beautifulsoup4
+    # Upstream is now a pyproject package exposing a `carbon14` entrypoint
+    uv pip install .
     deactivate
     add-aliases carbon14
     add-history carbon14
@@ -339,7 +339,8 @@ function install_finalrecon() {
 function install_osrframework() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing osrframework"
-    uv tool install osrframework --with 'urllib3<2'
+    # unmaintained: needs collections.MutableMapping (python < 3.10) and pip.get_installed_distributions (pip < 10)
+    uv tool install --python 3.9 osrframework --with 'urllib3<2' --with 'pip<10'
     add-history osrframework
     add-test-command "osrframework-cli --help"
     add-to-list "osrframework,https://github.com/i3visio/osrframework,Include references to a bunch of different applications related to username checking / DNS lookups / information leaks research / deep web search / regular expressions extraction and many others."

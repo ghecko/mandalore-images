@@ -152,7 +152,7 @@ function install_corscanner() {
 function install_droopescan() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing droopescan"
-    uv tool install git+https://github.com/droope/droopescan.git
+    uv tool install --python 3.11 git+https://github.com/droope/droopescan.git
     add-history droopescan
     add-test-command "droopescan --help"
     add-to-list "droopescan,https://github.com/droope/droopescan,Scan Drupal websites for vulnerabilities."
@@ -165,6 +165,8 @@ function install_eyewitness() {
     uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
     ./setup/setup.sh
+    # setup.sh creates its own eyewitness-venv; install the python deps in ./venv used by the alias
+    uv pip install -r setup/requirements.txt
     deactivate
     add-aliases eyewitness
     add-history eyewitness
@@ -670,11 +672,11 @@ function install_testssl() {
     colorecho "Installing testssl"
     # TODO : Check if deps are already installed
     fapt bsdmainutils
-    git -C /opt/tools/ clone --depth 1 https://github.com/drwetter/testssl.sh.git
+    git -C /opt/tools/ clone --depth 1 https://github.com/testssl/testssl.sh.git
     add-aliases testssl
     add-history testssl
     add-test-command "testssl.sh --help"
-    add-to-list "testssl,https://github.com/drwetter/testssl.sh,a tool for testing SSL/TLS encryption on servers"
+    add-to-list "testssl,https://github.com/testssl/testssl.sh,a tool for testing SSL/TLS encryption on servers"
 }
 
 function install_timing_attack() {

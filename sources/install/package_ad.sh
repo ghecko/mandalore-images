@@ -558,7 +558,7 @@ function install_krbrelayx() {
     cd /opt/tools/krbrelayx || exit
     uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    uv pip install dnspython ldap3 impacket dsinternals
+    uv pip install dnspython ldap3 impacket dsinternals ldap3-ad-auth
     deactivate
     cp -v /root/sources/assets/grc/conf.krbrelayx /usr/share/grc/conf.krbrelayx
     add-aliases krbrelayx
@@ -701,7 +701,7 @@ function install_mitm6_pip() {
 function install_msprobe() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing msprobe"
-    uv tool install --python 3.8 git+https://github.com/puzzlepeaches/msprobe
+    uv tool install --python 3.8 git+https://github.com/puzzlepeaches/msprobe --with 'setuptools<81'
     add-history msprobe
     add-test-command "msprobe --help"
     add-to-list "msprobe,https://github.com/puzzlepeaches/msprobe,msprobe is a tool to identify Microsoft Windows hosts and servers that are running certain services."
@@ -750,7 +750,7 @@ function install_noPac() {
     cd /opt/tools/noPac || exit
     uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    uv pip install -r requirements.txt
+    uv pip install -r requirements.txt 'setuptools<81'
     deactivate
     add-aliases noPac
     add-history noPac
@@ -808,7 +808,7 @@ function install_pcredz() {
     cd /opt/tools/PCredz || exit
     uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    uv pip install Cython python-libpcap
+    uv pip install Cython python-libpcap pcapy-ng
     deactivate
     add-aliases pcredz
     add-history pcredz
@@ -1041,7 +1041,7 @@ function install_pywsus() {
     # https://github.com/GoSecure/pywsus/pull/12
     echo -e "beautifulsoup4==4.9.1\nlxml==4.9.1\nsoupsieve==2.0.1" > requirements.txt
     source ./venv/bin/activate
-    uv pip install -r requirements.txt
+    uv pip install -r requirements.txt rich
     deactivate
     add-aliases pywsus
     add-history pywsus
@@ -1072,7 +1072,7 @@ function install_responder() {
     source ./venv/bin/activate
     uv pip install -r requirements.txt
     # following requirements needed by MultiRelay.py
-    uv pip install pycryptodomex six
+    uv pip install pycryptodomex six 'setuptools<81'
     deactivate
     sed -i 's/ Random/ 1122334455667788/g' /opt/tools/Responder/Responder.conf
     sed -i 's/files\/AccessDenied.html/\/opt\/tools\/Responder\/files\/AccessDenied.html/g' /opt/tools/Responder/Responder.conf
@@ -1210,7 +1210,7 @@ function install_shadowcoerce() {
 function install_smartbrute() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing smartbrute"
-    uv tool install git+https://github.com/ShutdownRepo/smartbrute
+    uv tool install --python 3.11 git+https://github.com/ShutdownRepo/smartbrute
     add-history smartbrute
     add-test-command "smartbrute --help"
     add-to-list "smartbrute,https://github.com/ShutdownRepo/SmartBrute,The smart password spraying and bruteforcing tool for Active Directory Domain Services."

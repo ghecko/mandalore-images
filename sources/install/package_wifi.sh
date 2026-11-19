@@ -66,7 +66,7 @@ function install_wifite2() {
     git -C /opt/tools/ clone --depth 1 https://github.com/kimocoder/wifite2.git
     cd /opt/tools/wifite2 || exit
     uv venv --python 3.11 --seed ./venv
-    catch_and_retry ./venv/bin/python3 setup.py install
+    uv pip install --python ./venv/bin/python3 .
     add-aliases wifite
     add-history wifite
     add-test-command "Wifite.py --help"

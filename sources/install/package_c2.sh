@@ -8,7 +8,7 @@ source package_ad.sh
 function install_pwncat() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing pwncat"
-    uv tool install pwncat-cs --with cryptography==36.0.2
+    uv tool install --python 3.11 pwncat-cs --with cryptography==36.0.2 --with 'setuptools<81'
     add-history pwncat
     add-test-command "pwncat-cs --version"
     add-to-list "pwncat,https://github.com/calebstewart/pwncat,A lightweight and versatile netcat alternative that includes various additional features."
@@ -71,7 +71,7 @@ function install_metasploit() {
 function install_routersploit() {
     # CODE-CHECK-WHITELIST=add-history
     colorecho "Installing RouterSploit"
-    uv tool install routersploit --with colorama
+    uv tool install --python 3.11 routersploit --with colorama --with 'setuptools<81'
     add-aliases routersploit
     add-test-command "routersploit --help"
     add-to-list "routersploit,https://github.com/threat9/routersploit,Security audit tool for routers."

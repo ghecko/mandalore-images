@@ -295,7 +295,7 @@ function install_pyftpdlib() {
     colorecho "Installing pyftpdlib"
     uv tool install pyftpdlib
     add-aliases pyftpdlib
-    add-test-command "$(uv tool dir)/pyftpdlib/bin/python -c 'import pyftpdlib'"
+    add-test-command "$(command uv tool dir)/pyftpdlib/bin/python -c 'import pyftpdlib'"
     add-to-list "pyftpdlib,https://github.com/giampaolo/pyftpdlib/,Extremely fast and scalable Python FTP server library"
 }
 
