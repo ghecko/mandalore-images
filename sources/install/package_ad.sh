@@ -631,17 +631,22 @@ function install_ldapsearch-ad() {
 }
 
 function install_LDAPWordlistHarvester() {
+    # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing LDAPWordlistHarvester"
-    git -C /opt/tools/ clone --depth 1 https://github.com/p0dalirius/pyLDAPWordlistHarvester
-    cd /opt/tools/pyLDAPWordlistHarvester || exit
-    uv venv --python 3.11 --seed ./venv
-    source ./venv/bin/activate
-    uv pip install -r requirements.txt
-    deactivate
-    add-aliases LDAPWordlistHarvester
+    # Go rewrite (replaces the python p0dalirius/pyLDAPWordlistHarvester), prebuilt release binary.
+    gh_release_binary TheManticoreProject/ldapwordlistharvester LDAPWordlistHarvester /opt/tools/bin/LDAPWordlistHarvester
     add-history LDAPWordlistHarvester
-    add-test-command "LDAPWordlistHarvester.py --help"
-    add-to-list "LDAPWordlistHarvester,https://github.com/p0dalirius/pyLDAPWordlistHarvester,Generate a wordlist from the information present in LDAP in order to crack passwords of domain accounts"
+    add-test-command "LDAPWordlistHarvester --help"
+    add-to-list "LDAPWordlistHarvester,https://github.com/TheManticoreProject/ldapwordlistharvester,Generate a wordlist from the information present in LDAP in order to crack passwords of domain accounts (Go rewrite)."
+}
+
+function install_delegations() {
+    # CODE-CHECK-WHITELIST=add-aliases
+    colorecho "Installing delegations"
+    gh_release_binary TheManticoreProject/delegations Delegations /opt/tools/bin/delegations
+    add-history delegations
+    add-test-command "delegations --help"
+    add-to-list "delegations,https://github.com/TheManticoreProject/delegations,Audit find add and remove all types of Kerberos delegations (unconstrained constrained and RBCD) in Active Directory."
 }
 
 function install_ldeep() {
@@ -1384,6 +1389,7 @@ function package_ad() {
     safe_install ad install_conpass                # Python tool for continuous password spraying taking into account the password policy.
     safe_install ad install_crackhound
     safe_install ad install_darkarmour              # Windows AV evasion
+    safe_install ad install_delegations             # Audit/find/add/remove Kerberos delegations (unconstrained, constrained, RBCD)
     safe_install ad install_donpapi
     safe_install ad install_dploot                 # Python rewrite of SharpDPAPI written un C#.
     safe_install ad install_enum4linux-ng           # Hosts enumeration
