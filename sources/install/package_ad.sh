@@ -1230,10 +1230,19 @@ function install_smartbrute() {
 function install_smbclientng() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing smbclient-ng"
-    uv tool install git+https://github.com/p0dalirius/smbclient-ng
+    # Go rewrite (replaces the python p0dalirius/smbclient-ng). Built from source because
+    # tagged releases carry a `replace` directive in go.mod, which breaks `go install ...@latest`.
+    # Requires Go >= 1.24, whereas the image's default go is 1.22.2: pin 1.26.1 (from package_base.sh).
+    git -C /tmp clone --depth 1 https://github.com/TheManticoreProject/smbclientng
+    (
+      cd /tmp/smbclientng || exit
+      asdf set golang 1.26.1
+      go build -o /opt/tools/bin/smbclient-ng .
+    )
+    rm -rf /tmp/smbclientng
     add-history smbclient-ng
-    add-test-command "smbclientng --help"
-    add-to-list "smbclient-ng,https://github.com/p0dalirius/smbclient-ng,smbclient-ng is a fast and user friendly way to interact with SMB shares."
+    add-test-command "smbclient-ng --help"
+    add-to-list "smbclient-ng,https://github.com/TheManticoreProject/smbclientng,A fast, cross-platform and user friendly way to interact with SMB shares (Go rewrite)."
 }
 
 function install_smtp-user-enum() {
