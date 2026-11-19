@@ -15,7 +15,8 @@ function install_exegol-history() {
     cd /opt/tools/exegol-history || exit
     uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    uv pip install -r requirements.txt
+    # requirements.txt is incomplete (misses argcomplete): install the project itself
+    uv pip install .
     deactivate
     add-aliases exegol-history
     add-history exegol-history
@@ -210,7 +211,10 @@ function install_rvm() {
     curl -sSL https://get.rvm.io -o /tmp/rvm.sh
     bash /tmp/rvm.sh --ruby="3.2.2" stable
     source /usr/local/rvm/scripts/rvm
-    rvm autolibs read-fail
+    # RVM's Debian requirements check still asks for libncurses5-dev, which Debian 13 dropped
+    # (now libncurses-dev). Install Ruby build deps ourselves and disable autolibs checks.
+    fapt autoconf bison libncurses-dev libyaml-dev libssl-dev libreadline-dev zlib1g-dev libffi-dev libgdbm-dev libdb-dev
+    rvm autolibs disable
     rvm rvmrc warning ignore allGemfiles
     rvm use 3.2.2@default
     rvm install ruby-3.3.8 # Needed by metasploits
@@ -291,7 +295,7 @@ function install_pyftpdlib() {
     colorecho "Installing pyftpdlib"
     uv tool install pyftpdlib
     add-aliases pyftpdlib
-    add-test-command "python3 -c 'import pyftpdlib'"
+    add-test-command "$(uv tool dir)/pyftpdlib/bin/python -c 'import pyftpdlib'"
     add-to-list "pyftpdlib,https://github.com/giampaolo/pyftpdlib/,Extremely fast and scalable Python FTP server library"
 }
 
@@ -511,8 +515,6 @@ function package_base() {
     # Re-init failure tracking because deploy_mandalore wipes /.mandalore
     init_failure_tracking
     add_debian_repository_components
-    cp -v /root/sources/assets/apt/sources.list.d/* /etc/apt/sources.list.d/
-    cp -v /root/sources/assets/apt/preferences.d/* /etc/apt/preferences.d/
     apt-get update
     colorecho "Starting main programs install"
     fapt man git lsb-release pciutils pkg-config zip unzip kmod gnupg2 wget \
