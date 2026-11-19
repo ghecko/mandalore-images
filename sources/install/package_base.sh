@@ -113,9 +113,9 @@ function install_python_versions() {
     # We install 3.10, 3.11, 3.12, 3.13
     uv python install 3.10 3.11 3.12 3.13
     
-    # We can set a preference, but uv usually picks the latest or specified one.
-    # To ensure 'python' or 'python3' uses a specific version globally with uv commands, 
-    # we can use 'uv python pin'. But for system-wide usage, we rely on uv's discovery.
+    # Pin the default interpreter: without it uv picks the newest managed python, so a single
+    # `--python 3.14` install (theHarvester) silently moved every later unpinned tool to 3.14.
+    uv python pin --global 3.13
     
     add-test-command "uv python list"
     add-test-command "uv python find 3.11"
