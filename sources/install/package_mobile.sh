@@ -27,17 +27,11 @@ function install_mobile_apt_tools() {
 function install_scrpy() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing scrcpy"
-    fapt ffmpeg libsdl2-2.0-0 adb \
-                 meson ninja-build libsdl2-dev \
+    fapt ffmpeg libsdl3-0 adb \
+                 meson ninja-build libsdl3-dev \
                  libavcodec-dev libavdevice-dev libavformat-dev libavutil-dev \
                  libswresample-dev libusb-1.0-0 libusb-1.0-0-dev
-    # May 2026: scrcpy v4.0 requires SDL3; libsdl3 is not installable on Debian 12 (bookworm).
-    # Revert when base image provides SDL3 (Debian >= trixie): use libsdl3-0/libsdl3-dev and
-    # `git clone --depth 1 https://github.com/Genymobile/scrcpy` (drop the branch pin).
-    local temp_fix_limit="2027-04-01"
-    if check_temp_fix_expiry "$temp_fix_limit"; then
-      git clone --depth 1 --branch v3.3.4 https://github.com/Genymobile/scrcpy
-    fi
+    git clone --depth 1 https://github.com/Genymobile/scrcpy
     # opening subshell to not have to cd back
     (
       cd scrcpy || exit
@@ -101,7 +95,8 @@ function install_androguard() {
 function install_mobsf() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing Mobile Security Framework"
-    fapt wkhtmltopdf libxmlsec1 libxmlsec1-dev
+    # wkhtmltopdf no longer needed: MobSF generates PDF reports with xhtml2pdf
+    fapt libxmlsec1 libxmlsec1-dev
     git -C /tmp clone --depth 1 https://github.com/MobSF/Mobile-Security-Framework-MobSF MobSF
     # yara-python-dex is be needed for ARM64
     uv tool install /tmp/MobSF --with setuptools --with git+https://github.com/MobSF/yara-python-dex.git --with xmlsec==1.3.14 --no-binary-package xmlsec

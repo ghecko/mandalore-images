@@ -1,5 +1,5 @@
 # Author: The Mandalore Project
-FROM debian:12-slim
+FROM debian:13-slim
 
 ARG TAG
 ARG VERSION

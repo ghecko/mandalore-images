@@ -57,6 +57,19 @@ function install_go() {
     add-test-command "go version"
 }
 
+function install_nim() {
+    # CODE-CHECK-WHITELIST=add-aliases,add-history
+    colorecho "Installing nim"
+    # Debian 13 no longer ships nim. Managed via asdf (prebuilt binaries) so it can be
+    # updated in the image with: asdf install nim latest && asdf set --home nim latest
+    asdf plugin add nim https://github.com/asdf-community/asdf-nim.git
+    asdf install nim latest:2
+    asdf set --home nim latest:2
+    add-test-command "nim --version"
+    add-test-command "nimble --version"
+    add-to-list "nim,https://github.com/nim-lang/Nim,Nim programming language compiler and nimble package manager (managed with asdf)."
+}
+
 function deploy_mandalore() {
     colorecho "Installing Mandalore things"
     # Moving mandalore files to /
@@ -407,31 +420,6 @@ function install_java11() {
     add-test-command "java11 --version"
 }
 
-function install_java21() {
-    # CODE-CHECK-WHITELIST=add-history,add-aliases,add-to-list
-    colorecho "Installing java 21"
-    if [[ $(uname -m) = 'x86_64' ]]
-    then
-        wget -O /tmp/openjdk21-jdk.tar.gz "https://download.java.net/java/GA/jdk21.0.2/f2283984656d49d69e91c558476027ac/13/GPL/openjdk-21.0.2_linux-x64_bin.tar.gz"
-
-    elif [[ $(uname -m) = 'aarch64' ]]
-    then
-        wget -O /tmp/openjdk21-jdk.tar.gz "https://download.java.net/java/GA/jdk21.0.2/f2283984656d49d69e91c558476027ac/13/GPL/openjdk-21.0.2_linux-aarch64_bin.tar.gz"
-    else
-        criticalecho-noexit "This installation function doesn't support architecture $(uname -m)" && return
-    fi
-    tar -xzf /tmp/openjdk21-jdk.tar.gz --directory /tmp
-    mkdir -p "/usr/lib/jvm"
-    mv /tmp/jdk-21* /usr/lib/jvm/java-21-openjdk
-    for x in /usr/lib/jvm/java-21-openjdk/bin/*; do
-      BIN_NAME=$(echo "$x" | rev | cut -d '/' -f1 | rev)
-      update-alternatives --install "/usr/bin/$BIN_NAME" "$BIN_NAME" "$x" 21;
-    done
-    ln -s -v /usr/lib/jvm/java-21-openjdk/bin/java /usr/bin/java21
-    add-test-command "/usr/lib/jvm/java-21-openjdk/bin/java --version"
-    add-test-command "java21 --version"
-}
-
 function install_java24() {
     # CODE-CHECK-WHITELIST=add-history,add-aliases,add-to-list
     colorecho "Installing java 24"
@@ -522,7 +510,6 @@ function package_base() {
     deploy_mandalore
     # Re-init failure tracking because deploy_mandalore wipes /.mandalore
     init_failure_tracking
-    fapt software-properties-common
     add_debian_repository_components
     cp -v /root/sources/assets/apt/sources.list.d/* /etc/apt/sources.list.d/
     cp -v /root/sources/assets/apt/preferences.d/* /etc/apt/preferences.d/
@@ -530,10 +517,10 @@ function package_base() {
     colorecho "Starting main programs install"
     fapt man git lsb-release pciutils pkg-config zip unzip kmod gnupg2 wget \
     libffi-dev zsh asciinema npm gem automake autoconf make cmake time gcc g++ file lsof \
-    less x11-apps net-tools vim nano jq iputils-ping iproute2 tidy mlocate libtool \
+    less x11-apps net-tools vim nano jq iputils-ping iproute2 tidy plocate libtool \
     dos2unix ftp sshpass telnet nfs-common ncat netcat-traditional socat rdate putty \
-    screen p7zip-full p7zip-rar unrar xz-utils xsltproc parallel tree ruby ruby-dev ruby-full bundler \
-    nim perl libwww-perl openjdk-17-jdk openvpn openresolv \
+    screen p7zip-full 7zip-rar unrar xz-utils xsltproc parallel tree ruby ruby-dev ruby-full bundler \
+    perl libwww-perl openjdk-21-jdk openvpn openresolv \
     logrotate tmux bat libxml2-utils virtualenv chromium libsasl2-dev \
     libldap2-dev libssl-dev isc-dhcp-client sqlite3 dnsutils samba ssh snmp faketime php \
     python3 python3-dev grc emacs-nox xsel xxd libnss3-tools htop
@@ -578,15 +565,18 @@ function package_base() {
     install_rust_cargo
     install_rvm                                         # Ruby Version Manager
 
-    # java11 install, java21 install, and java17 as default
+    # java11 install (manual), java21 from Debian (openjdk-21-jdk, installed above) as default.
+    # Debian 13 no longer ships openjdk-17; java21 replaces it as the default JVM.
     install_java11
-    install_java21
-    #install_java24  # Ready to be install when needed as replacement of java21 ?
-    ln -s -v /usr/lib/jvm/java-17-openjdk-* /usr/lib/jvm/java-17-openjdk    # To avoid determining the correct path based on the architecture
-    ln -s -v /usr/lib/jvm/java-17-openjdk/bin/java /usr/bin/java17          # Add java17 bin
-    update-alternatives --set java /usr/lib/jvm/java-17-openjdk-*/bin/java  # Set the default openjdk version to 17
+    #install_java24  # Ready to be install when needed
+    ln -s -v /usr/lib/jvm/java-21-openjdk-* /usr/lib/jvm/java-21-openjdk    # To avoid determining the correct path based on the architecture
+    ln -s -v /usr/lib/jvm/java-21-openjdk/bin/java /usr/bin/java21          # Add java21 bin
+    update-alternatives --set java /usr/lib/jvm/java-21-openjdk-*/bin/java  # Set the default openjdk version to 21
+    add-test-command "/usr/lib/jvm/java-21-openjdk/bin/java --version"
+    add-test-command "java21 --version"
 
     install_go                                          # Golang language
+    install_nim                                         # Nim language (asdf)
     install_ohmyzsh                                     # Awesome shell
     install_fzf                                         # Fuzzy finder
     add-history curl

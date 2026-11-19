@@ -868,7 +868,9 @@ function package_web() {
     safe_install web install_joomscan                # Joomla scanner
     safe_install web install_jsluice                 # Extract URLs, paths, secrets, and other interesting data from JavaScript source code
     safe_install web install_jwt_tool                # Toolkit for validating, forging, scanning and tampering JWTs
-    safe_install web install_kadimus                 # LFI scanner
+    # Debian 13: Kadimus (unmaintained since 2020) needs libpcre3 (PCRE1), removed from trixie.
+    # Disabled until replaced or built against a vendored PCRE1.
+    # safe_install web install_kadimus                 # LFI scanner
     safe_install web install_katana                  # A next-generation crawling and spidering framework
     safe_install web install_kiterunner              # Web fuzzer (fast and pretty good for api bruteforce)
     safe_install web install_kraken                  # Kraken is a modular multi-language webshell.

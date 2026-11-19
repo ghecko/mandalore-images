@@ -122,7 +122,7 @@ function install_bloodhound-ce() {
     fapt postgresql postgresql-client
 
     # only expose postgresql on localhost
-    sed -i 's/#listen_addresse/listen_addresse/' /etc/postgresql/15/main/postgresql.conf
+    sed -i 's/#listen_addresse/listen_addresse/' /etc/postgresql/*/main/postgresql.conf
     service postgresql start
 
     # avoid permissions issues when impersonating postgres
@@ -155,15 +155,6 @@ function install_bloodhound-ce() {
     # Build the API
     # 1.26.1 is installed by package_base.sh; 1.24.4 was never installed.
     asdf set golang 1.26.1
-    # Workaround for a BloodHound-CE migration SQL issue, see Exegol-images PR #667.
-    # Column-level `STORAGE MAIN` inside CREATE TABLE requires PostgreSQL >= 16; the image
-    # ships PostgreSQL 15 (Debian 12). Remove when the base image provides PG >= 16.
-    # Since v9.x the statement lives in both migrations/legacy/v8.5.0.sql and the squashed
-    # migrations/00000000000001_init.sql, so patch every migration file that contains it.
-    local temp_fix_limit="2027-04-01"
-    if check_temp_fix_expiry "$temp_fix_limit"; then
-        { grep -rlZ 'STORAGE MAIN' ./cmd/api/src/database/migration/migrations/ || true; } | xargs -0 -r sed -i 's/\s*STORAGE MAIN//'
-    fi
     go build -C cmd/api/src -o ${bloodhoundce_path}/bloodhound -ldflags "-X 'github.com/specterops/bloodhound/cmd/api/src/version.majorVersion=8' -X 'github.com/specterops/bloodhound/cmd/api/src/version.minorVersion=0' -X 'github.com/specterops/bloodhound/cmd/api/src/version.patchVersion=1'" github.com/specterops/bloodhound/cmd/api/src/cmd/bhapi
 
     # Force remove go and yarn cache that are not stored in standard locations
@@ -734,7 +725,7 @@ function install_neo4j() {
     #echo 'deb https://debian.neo4j.com stable latest' | tee /etc/apt/sources.list.d/neo4j.list
     echo 'deb https://debian.neo4j.com stable 4.4' | tee /etc/apt/sources.list.d/neo4j.list
     apt-get update
-    fapt gnupg libgtk2.0-bin libcanberra-gtk-module libx11-xcb1 libva-glx2 libgl1-mesa-glx libgl1-mesa-dri libgconf-2-4 libasound2 libxss1 neo4j
+    fapt gnupg libgtk2.0-bin libcanberra-gtk3-module libx11-xcb1 libva-glx2 libgl1 libglx-mesa0 libgl1-mesa-dri libasound2 libxss1 neo4j
     # TODO: when temporary fix is not needed anymore add --> neo4j-admin dbms set-initial-password mandalore4thewin
     # TODO: when temporary fix is not needed anymore remove following line
     neo4j-admin set-initial-password mandalore4thewin
