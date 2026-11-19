@@ -61,6 +61,16 @@ function install_pyrit() {
     add-to-list "pyrit,https://github.com/JPaulMora/Pyrit,Python-based WPA/WPA2-PSK attack tool."
 }
 
+function install_wifit3() {
+    # CODE-CHECK-WHITELIST=add-aliases
+    colorecho "Installing wifit3"
+    # USB-only auditor with its own userspace drivers: needs the adapter passed to the container (e.g. --device /dev/bus/usb)
+    uv tool install git+https://github.com/derv82/wifit3
+    add-history wifit3
+    add-test-command "wifit3 --help"
+    add-to-list "wifit3,https://github.com/derv82/wifit3,Standalone USB Wi-Fi auditor (handshakes, PMKID, WPS, WEP) with built-in userspace drivers."
+}
+
 function install_wifite2() {
     colorecho "Installing wifite2"
     git -C /opt/tools/ clone --depth 1 https://github.com/kimocoder/wifite2.git
@@ -131,6 +141,7 @@ function package_wifi() {
     safe_install wifi install_wifi_apt_tools
     safe_install wifi install_pyrit                   # Databases of pre-computed WPA/WPA2-PSK authentication phase
     safe_install wifi install_wifite2                 # Retrieving password of a wireless access point (router)
+    safe_install wifi install_wifit3                  # USB-only Wi-Fi auditor by wifite's author
     # install_hostapd-wpe           # Modified hostapd to facilitate AP impersonation attacks, FIXME broken install, need official release of hostapd-2.6.tar.gz
     safe_install wifi install_bettercap               # MiTM tool
     safe_install wifi install_hcxtools                # Tools for PMKID and other wifi attacks
