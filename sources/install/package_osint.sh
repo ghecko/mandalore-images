@@ -145,20 +145,6 @@ function install_h8mail() {
     add-to-list "h8mail,https://github.com/khast3x/h8mail,Email OSINT and breach hunting."
 }
 
-function install_infoga() {
-    colorecho "Installing infoga"
-    git -C /opt/tools/ clone --depth 1 https://github.com/m4ll0k/Infoga
-    find /opt/tools/Infoga/ -type f -print0 | xargs -0 dos2unix
-    cd /opt/tools/Infoga || exit
-    python2 -m virtualenv ./venv
-    source ./venv/bin/activate
-    pip2 install .
-    deactivate
-    add-aliases infoga
-    add-history infoga
-    add-test-command "infoga.py --help"
-    add-to-list "infoga,https://github.com/m4ll0k/Infoga,Information gathering tool for hacking."
-}
 
 function install_pwnedornot() {
     colorecho "Installing pwnedornot"
@@ -419,7 +405,6 @@ function install_trevorspray() {
 
 function install_gitfive() {
     # CODE-CHECK-WHITELIST=add-aliases,add-history
-    # GitFive only works with Python 3.10+.
     colorecho "Installing GitFive"
     uv tool install git+https://github.com/mxrch/GitFive
     add-test-command "gitfive --help"
@@ -467,21 +452,6 @@ function install_murmurhash() {
     add-to-list "MurMurHash,https://github.com/QU35T-code/MurMurHash,This little tool is to calculate a MurmurHash value of a favicon to hunt phishing websites on the Shodan platform."
 }
 
-function install_blackbird() {
-    colorecho "Installing Blackbird"
-    git -C /opt/tools clone --depth 1 https://github.com/p1ngul1n0/blackbird
-    cd /opt/tools/blackbird || exit
-    sed -i "s#data.json#/opt/tools/blackbird/data.json#" blackbird.py
-    sed -i "s#useragents.txt#/opt/tools/blackbird/useragents.txt#" blackbird.py
-    uv venv --python 3.11 --seed ./venv
-    source ./venv/bin/activate
-    uv pip install -r requirements.txt
-    deactivate
-    add-aliases blackbird
-    add-history blackbird
-    add-test-command "blackbird.py --help"
-    add-to-list "Blackbird,https://github.com/p1ngul1n0/blackbird,An OSINT tool to search fast for accounts by username across 581 sites."
-}
 
 function install_sherlock() {
     # CODE-CHECK-WHITELIST=add-aliases
@@ -546,9 +516,7 @@ function package_osint() {
     safe_install osint install_simplyemail             # Gather emails
     safe_install osint install_theharvester            # Gather emails, subdomains, hosts, employee names, open ports and banners
     safe_install osint install_h8mail                  # Email OSINT & Password breach hunting tool
-    # install_infoga                  # Gathering email accounts informations TODO : 404, it seems the repo has been removed
     safe_install osint install_pwnedornot              # OSINT Tool for Finding Passwords of Compromised Email Addresses
-    # install_ghunt                 # Investigate Google Accounts with emails FIXME: Need python3.10 -> https://github.com/mxrch/GHunt/issues/398
     safe_install osint install_phoneinfoga             # Advanced information gathering & OSINT framework for phone numbers
     safe_install osint install_maigret                 # Search pseudos and information about users on many platforms
     safe_install osint install_linkedin2username       # Generate username lists for companies on LinkedIn
@@ -562,7 +530,6 @@ function package_osint() {
     safe_install osint install_spiderfoot              # SpiderFoot automates OSINT collection
     safe_install osint install_finalrecon              # A fast and simple python script for web reconnaissance
     safe_install osint install_osrframework            # OSRFramework, the Open Sources Research Framework
-    # install_torbrowser            # Tor browser FIXME: Github project ?
     # configure_tor
     safe_install osint install_pwndb					# No need to say more, no ? Be responsible with this tool please !
     safe_install osint install_githubemail             # Retrieve a GitHub user's email even if it's not public
@@ -570,11 +537,10 @@ function package_osint() {
     safe_install osint install_gron                    # JSON parser
     safe_install osint install_ignorant                # holehe but for phone numbers
     safe_install osint install_trevorspray             # modular password sprayer with threading, SSH proxying, loot modules, and more!
-    # install_gitfive               # TODO : only works with python3.10+
+    safe_install osint install_gitfive               # OSINT tool to investigate GitHub profiles
     safe_install osint install_geopincer               # GeoPincer is a script that leverages OpenStreetMap's Overpass API in order to search for locations
     safe_install osint install_yalis                   # Yet Another LinkedIn Scraper
     safe_install osint install_murmurhash              # Little tool is to calculate a MurmurHash value
-    #install_blackbird              Skipping install because of https://github.com/p1ngul1n0/blackbird/issues/119 # OSINT tool to search fast for accounts by username
     safe_install osint install_sherlock                # Hunt down social media accounts by username across social networks
     safe_install osint install_censys                  # An easy-to-use and lightweight API wrapper for Censys APIs
     safe_install osint install_gomapenum               # Nothing new but existing techniques are brought together in one tool.

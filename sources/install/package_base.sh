@@ -110,8 +110,8 @@ function install_python_versions() {
 
     # Install Python versions using uv
     # This downloads standalone python builds
-    # We install 3.10, 3.11, 3.12, 3.13
-    uv python install 3.10 3.11 3.12 3.13
+    # 3.11 and 3.13 cover most tools; other versions requested with --python are fetched on demand
+    uv python install 3.11 3.13
     
     # Pin the default interpreter: without it uv picks the newest managed python, so a single
     # `--python 3.14` install (theHarvester) silently moved every later unpinned tool to 3.14.
@@ -424,30 +424,6 @@ function install_java11() {
     add-test-command "java11 --version"
 }
 
-function install_java24() {
-    # CODE-CHECK-WHITELIST=add-history,add-aliases,add-to-list
-    colorecho "Installing java 24"
-    if [[ $(uname -m) = 'x86_64' ]]
-    then
-        wget -O /tmp/openjdk24-jdk.tar.gz "https://download.java.net/java/GA/jdk24/1f9ff9062db4449d8ca828c504ffae90/36/GPL/openjdk-24_linux-x64_bin.tar.gz"
-
-    elif [[ $(uname -m) = 'aarch64' ]]
-    then
-        wget -O /tmp/openjdk24-jdk.tar.gz "https://download.java.net/java/GA/jdk24/1f9ff9062db4449d8ca828c504ffae90/36/GPL/openjdk-24_linux-aarch64_bin.tar.gz"
-    else
-        criticalecho-noexit "This installation function doesn't support architecture $(uname -m)" && return
-    fi
-    tar -xzf /tmp/openjdk24-jdk.tar.gz --directory /tmp
-    mkdir -p "/usr/lib/jvm"
-    mv /tmp/jdk-24* /usr/lib/jvm/java-24-openjdk
-    for x in /usr/lib/jvm/java-24-openjdk/bin/*; do
-      BIN_NAME=$(echo "$x" | rev | cut -d '/' -f1 | rev)
-      update-alternatives --install "/usr/bin/$BIN_NAME" "$BIN_NAME" "$x" 24;
-    done
-    ln -s -v /usr/lib/jvm/java-24-openjdk/bin/java /usr/bin/java24
-    add-test-command "/usr/lib/jvm/java-24-openjdk/bin/java --version"
-    add-test-command "java24 --version"
-}
 
 function add_debian_repository_components() {
     # add non-free non-free-firmware contrib repository
@@ -492,14 +468,6 @@ function install_asdf() {
     add-to-list "asdf,https://github.com/asdf-vm/asdf,Extendable version manager with support for ruby python go etc"
 }
 
-function install_pipx() {
-    # CODE-CHECK-WHITELIST=add-aliases,add-history,add-to-list
-    colorecho "Installing pipx"
-    # pip3 can't upgrade Debian's python3-platformdirs on trixie: use the distro package
-    fapt pipx
-    pipx ensurepath
-    add-test-command "pipx --version"
-}
 
 # Package dedicated to the basic things the env needs
 function package_base() {
@@ -546,7 +514,6 @@ function package_base() {
     # the order matters (if 2 is before 3, `python` will point to Python 2)
     # setup Python environment using uv
     install_python_versions
-    # install_pipx is removed in favor of `uv tool install`
 
     # change default shell
     chsh -s /bin/zsh
@@ -571,7 +538,6 @@ function package_base() {
     # java11 install (manual), java21 from Debian (openjdk-21-jdk, installed above) as default.
     # Debian 13 no longer ships openjdk-17; java21 replaces it as the default JVM.
     install_java11
-    #install_java24  # Ready to be install when needed
     ln -s -v /usr/lib/jvm/java-21-openjdk-* /usr/lib/jvm/java-21-openjdk    # To avoid determining the correct path based on the architecture
     ln -s -v /usr/lib/jvm/java-21-openjdk/bin/java /usr/bin/java21          # Add java21 bin
     update-alternatives --set java /usr/lib/jvm/java-21-openjdk-*/bin/java  # Set the default openjdk version to 21
@@ -634,7 +600,6 @@ function package_base() {
     # Global python dependencies
     uv pip install --system --break-system-packages -r /root/sources/assets/python/requirements.txt
 
-    safe_install base install_pipx
 
     install_exegol-history
 

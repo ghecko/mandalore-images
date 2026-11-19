@@ -398,7 +398,6 @@ function package_network() {
     safe_install network install_sshuttle                # Transparent proxy over SSH
     safe_install network install_eaphammer               # EAPHammer is a toolkit for performing targeted evil twin attacks against WPA2-Enterprise networks.
     safe_install network install_fierce
-    # install_odat                  # Oracle Database Attacking Tool, FIXME
     safe_install network install_dnsx                    # Fast and multi-purpose DNS toolkit
     safe_install network install_shuffledns              # Wrapper around massdns to enumerate valid subdomains
     safe_install network install_tailscale               # Zero config VPN for building secure networks

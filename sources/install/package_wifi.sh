@@ -142,7 +142,6 @@ function package_wifi() {
     safe_install wifi install_pyrit                   # Databases of pre-computed WPA/WPA2-PSK authentication phase
     safe_install wifi install_wifite2                 # Retrieving password of a wireless access point (router)
     safe_install wifi install_wifit3                  # USB-only Wi-Fi auditor by wifite's author
-    # install_hostapd-wpe           # Modified hostapd to facilitate AP impersonation attacks, FIXME broken install, need official release of hostapd-2.6.tar.gz
     safe_install wifi install_bettercap               # MiTM tool
     safe_install wifi install_hcxtools                # Tools for PMKID and other wifi attacks
     safe_install wifi install_hcxdumptool             # Small tool to capture packets from wlan devices

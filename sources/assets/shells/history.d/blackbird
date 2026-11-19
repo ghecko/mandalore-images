@@ -1,3 +1,0 @@
-blackbird.py -u username
-blackbird.py --web
-blackbird.py -f username.json

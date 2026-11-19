@@ -344,20 +344,6 @@ function install_dploot() {
 }
 
 # Linux support WIP: https://github.com/MWR-CyberSec/PXEThief/pull/11
-function install_PXEThief() {
-    # CODE-CHECK-WHITELIST=
-    colorecho "Installing PXEThief"
-    git -C /opt/tools/ clone --depth 1 https://github.com/MWR-CyberSec/PXEThief
-    cd /opt/tools/PXEThief || exit
-    uv venv --python 3.11 --seed ./venv
-    source ./venv/bin/activate
-    uv pip install -r requirements.txt
-    deactivate
-    add-aliases PXEThief
-    add-history PXEThief
-    add-test-command "PXEThief --help"
-    add-to-list "PXEThief,https://github.com/MWR-CyberSec/PXEThief,PXEThief is a toolset designed to exploit vulnerabilities in Microsoft Endpoint Configuration Manager's OS Deployment enabling credential theft from network and task sequence accounts."
-}
 
 function install_enum4linux-ng() {
     # CODE-CHECK-WHITELIST=add-aliases
@@ -1184,14 +1170,6 @@ function install_sccmwtf() {
     add-to-list "sccmwtf,https://github.com/xpn/sccmwtf,This code is designed for exploring SCCM in a lab."
 }
 
-function install_scrtdnsdump() {
-    # CODE-CHECK-WHITELIST=add-aliases
-    colorecho "Installing scrtdnsdump"
-    uv tool install git+https://github.com/scrt/scrtdnsdump
-    add-history scrtdnsdump
-    add-test-command "scrtdnsdump --help"
-    add-to-list "scrtdnsdump,https://github.com/scrt/scrtdnsdump,Enumeration and exporting of all DNS records in the zone for recon purposes of internal networks"
-}
 
 function install_shadowcoerce() {
     colorecho "Installing ShadowCoerce PoC"
@@ -1355,8 +1333,6 @@ function package_ad() {
     local end_time
     start_time=$(date +%s)
     safe_install ad install_ad_apt_tools
-    # install_mitm6_sources         # Install mitm6 from sources
-    # install_scrtdnsdump          # This tool is a fork of adidnsdump (https://github.com/dirkjanm/adidnsdump). We are currently waiting to see if a PR will be made.
     safe_install ad install_abuseACL
     safe_install ad install_adidnsdump              # enumerate DNS records in Domain or Forest DNS zones
     safe_install ad install_adminer
@@ -1419,7 +1395,6 @@ function package_ad() {
     safe_install ad install_pre2k
     safe_install ad install_pretender
     safe_install ad install_privexchange            # Exchange exploiter
-    # install_PXEThief              # Linux support WIP
     safe_install ad install_pyfinduncommonshares
     safe_install ad install_pygpoabuse
     safe_install ad install_pylaps

@@ -396,18 +396,6 @@ function install_jwt_tool() {
     add-to-list "jwt,https://github.com/ticarpi/jwt_tool,a command-line tool for working with JSON Web Tokens (JWTs)"
 }
 
-function install_kadimus() {
-    colorecho "Installing kadimus"
-    # TODO : Check if deps are already installed
-    fapt libcurl4-openssl-dev libpcre3-dev libssh-dev
-    git -C /opt/tools/ clone --depth 1 https://github.com/P0cL4bs/Kadimus
-    cd /opt/tools/Kadimus || exit
-    make -j
-    add-aliases kadimus
-    add-history kadimus
-    add-test-command "kadimus --help"
-    add-to-list "kadimus,https://github.com/P0cL4bs/Kadimus,a tool for detecting and exploiting file upload vulnerabilities"
-}
 
 function install_katana() {
     # CODE-CHECK-WHITELIST=add-aliases
@@ -856,7 +844,6 @@ function package_web() {
     safe_install web install_fuxploider              # File upload scanner
     safe_install web install_gau                     # fetches known URLs from AlienVault's Open Threat Exchange, the Wayback Machine, Common Crawl, and URLScan
     safe_install web install_git-dumper              # Dump a git repository from a website
-    # install_gitrob                # Senstive files reconnaissance in github #FIXME: Go version too old ?
     safe_install web install_gittools                # Dump a git repository from a website
     safe_install web install_gobuster                # Web fuzzer (pretty good for several extensions)
     safe_install web install_gopherus                # SSRF helper
@@ -870,9 +857,6 @@ function package_web() {
     safe_install web install_joomscan                # Joomla scanner
     safe_install web install_jsluice                 # Extract URLs, paths, secrets, and other interesting data from JavaScript source code
     safe_install web install_jwt_tool                # Toolkit for validating, forging, scanning and tampering JWTs
-    # Debian 13: Kadimus (unmaintained since 2020) needs libpcre3 (PCRE1), removed from trixie.
-    # Disabled until replaced or built against a vendored PCRE1.
-    # safe_install web install_kadimus                 # LFI scanner
     safe_install web install_katana                  # A next-generation crawling and spidering framework
     safe_install web install_kiterunner              # Web fuzzer (fast and pretty good for api bruteforce)
     safe_install web install_kraken                  # Kraken is a modular multi-language webshell.
@@ -890,7 +874,6 @@ function package_web() {
     safe_install web install_soapui                  # SoapUI is an open-source web service testing application for SOAP and REST
     safe_install web install_sqlmap                  # SQL injection scanner
     safe_install web install_sslscan                 # SSL/TLS scanner
-    # install_sslyze                # SSL/TLS scanner FIXME: Only AMD ?
     safe_install web install_ssrfmap                 # SSRF scanner
     safe_install web install_symfony-exploits        # symfony secret fragments exploit
     safe_install web install_testssl                 # SSL/TLS scanner
