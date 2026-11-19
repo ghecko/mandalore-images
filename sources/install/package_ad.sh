@@ -725,7 +725,7 @@ function install_neo4j() {
     #echo 'deb https://debian.neo4j.com stable latest' | tee /etc/apt/sources.list.d/neo4j.list
     echo 'deb https://debian.neo4j.com stable 4.4' | tee /etc/apt/sources.list.d/neo4j.list
     apt-get update
-    fapt gnupg libgtk2.0-bin libcanberra-gtk3-module libx11-xcb1 libva-glx2 libgl1 libglx-mesa0 libgl1-mesa-dri libasound2 libxss1 neo4j
+    fapt gnupg libgtk2.0-bin libcanberra-gtk3-module libx11-xcb1 libva-glx2 libgl1 libglx-mesa0 libgl1-mesa-dri libasound2t64 libxss1 neo4j
     # TODO: when temporary fix is not needed anymore add --> neo4j-admin dbms set-initial-password mandalore4thewin
     # TODO: when temporary fix is not needed anymore remove following line
     neo4j-admin set-initial-password mandalore4thewin
