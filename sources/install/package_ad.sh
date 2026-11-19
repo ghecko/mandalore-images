@@ -38,14 +38,6 @@ function install_abuseACL() {
     add-to-list "abuseACL,https://github.com/AetherBlack/abuseACL,A python script to automatically list vulnerable Windows ACEs/ACLs."
 }
 
-function install_aclpwn() {
-    # CODE-CHECK-WHITELIST=add-aliases
-    colorecho "Installing aclpwn with pip"
-    uv tool install git+https://github.com/aas-n/aclpwn.py
-    add-history aclpwn
-    add-test-command "aclpwn -h"
-    add-to-list "aclpwn,https://github.com/aas-n/aclpwn.py,Tool for testing the security of Active Directory access controls."
-}
 
 function install_adidnsdump() {
     # CODE-CHECK-WHITELIST=add-aliases
@@ -1365,7 +1357,6 @@ function package_ad() {
     # install_mitm6_sources         # Install mitm6 from sources
     # install_scrtdnsdump          # This tool is a fork of adidnsdump (https://github.com/dirkjanm/adidnsdump). We are currently waiting to see if a PR will be made.
     safe_install ad install_abuseACL
-    safe_install ad install_aclpwn                  # ACL exploiter
     safe_install ad install_adidnsdump              # enumerate DNS records in Domain or Forest DNS zones
     safe_install ad install_adminer
     safe_install ad install_amber                   # AV evasion
