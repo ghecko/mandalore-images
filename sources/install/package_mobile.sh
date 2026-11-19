@@ -34,7 +34,7 @@ function install_scrpy() {
     # May 2026: scrcpy v4.0 requires SDL3; libsdl3 is not installable on Debian 12 (bookworm).
     # Revert when base image provides SDL3 (Debian >= trixie): use libsdl3-0/libsdl3-dev and
     # `git clone --depth 1 https://github.com/Genymobile/scrcpy` (drop the branch pin).
-    local temp_fix_limit="2026-09-01"
+    local temp_fix_limit="2027-04-01"
     if check_temp_fix_expiry "$temp_fix_limit"; then
       git clone --depth 1 --branch v3.3.4 https://github.com/Genymobile/scrcpy
     fi

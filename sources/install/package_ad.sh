@@ -156,9 +156,13 @@ function install_bloodhound-ce() {
     # 1.26.1 is installed by package_base.sh; 1.24.4 was never installed.
     asdf set golang 1.26.1
     # Workaround for a BloodHound-CE migration SQL issue, see Exegol-images PR #667.
-    local temp_fix_limit="2026-09-01"
+    # Column-level `STORAGE MAIN` inside CREATE TABLE requires PostgreSQL >= 16; the image
+    # ships PostgreSQL 15 (Debian 12). Remove when the base image provides PG >= 16.
+    # Since v9.x the statement lives in both migrations/legacy/v8.5.0.sql and the squashed
+    # migrations/00000000000001_init.sql, so patch every migration file that contains it.
+    local temp_fix_limit="2027-04-01"
     if check_temp_fix_expiry "$temp_fix_limit"; then
-        sed -i 's/\s*STORAGE MAIN//' ./cmd/api/src/database/migration/migrations/v8.5.0.sql
+        { grep -rlZ 'STORAGE MAIN' ./cmd/api/src/database/migration/migrations/ || true; } | xargs -0 -r sed -i 's/\s*STORAGE MAIN//'
     fi
     go build -C cmd/api/src -o ${bloodhoundce_path}/bloodhound -ldflags "-X 'github.com/specterops/bloodhound/cmd/api/src/version.majorVersion=8' -X 'github.com/specterops/bloodhound/cmd/api/src/version.minorVersion=0' -X 'github.com/specterops/bloodhound/cmd/api/src/version.patchVersion=1'" github.com/specterops/bloodhound/cmd/api/src/cmd/bhapi
 
@@ -601,7 +605,7 @@ function install_ldaprelayscan() {
     uv pip install -r requirements.txt
     # without following fix, tool raises "oscrypto.errors.LibraryNotFoundError: Error detecting the version of libcrypto"
     # see https://github.com/wbond/oscrypto/issues/78 and https://github.com/wbond/oscrypto/issues/75
-    local temp_fix_limit="2026-09-01"
+    local temp_fix_limit="2027-04-01"
     if check_temp_fix_expiry "$temp_fix_limit"; then
       uv pip install --reinstall oscrypto@git+https://github.com/wbond/oscrypto.git
     fi
@@ -853,7 +857,7 @@ function install_pkinittools() {
     uv pip install -r requirements.txt
     # without following fix, tool raises "oscrypto.errors.LibraryNotFoundError: Error detecting the version of libcrypto"
     # see https://github.com/wbond/oscrypto/issues/78 and https://github.com/wbond/oscrypto/issues/75
-    local temp_fix_limit="2026-09-01"
+    local temp_fix_limit="2027-04-01"
     if check_temp_fix_expiry "$temp_fix_limit"; then
       uv pip install --reinstall oscrypto@git+https://github.com/wbond/oscrypto.git
     fi
