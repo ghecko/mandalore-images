@@ -602,17 +602,15 @@ function install_soapui() {
     wget https://dl.eviware.com/soapuios/5.7.0/SoapUI-5.7.0-linux-bin.tar.gz -O /tmp/SoapUI.tar.gz
     tar xvf /tmp/SoapUI.tar.gz -C /opt/tools/SoapUI/ --strip=1
 
-    # Fix for ARM64: Replace bundled x86_64 JavaFX libs with AArch64 ones
+    # Fix for ARM64: replace the bundled x86_64 JavaFX native jars with OpenJFX aarch64 ones
+    # (17.0.2 is the latest OpenJFX release publishing linux-aarch64 jars on Maven Central)
     if [[ $(uname -m) = 'aarch64' ]]; then
         colorecho "Fixing SoapUI for ARM64..."
-        # Gluon OpenJFX 17 ARM64 builds are restricted/unavailable directly.
-        # Using BellSoft Liberica JDK 17 Full which bundles JavaFX for ARM64.
-        wget https://download.bell- sw.com/java/17.0.10+13/bellsoft-jdk17.0.10+13-linux-aarch64-full.tar.gz -O /tmp/liberica.tar.gz
-        tar xvf /tmp/liberica.tar.gz -C /tmp/
-        # Copy JavaFX jars from Liberica to SoapUI
-        # Liberica structure: jdk-17.0.10-full/lib/
-        yes | cp -rf /tmp/jdk-17.0.10-full/lib/javafx*.jar /opt/tools/SoapUI/lib/
-        rm -rf /tmp/liberica.tar.gz /tmp/jdk-17.0.10-full
+        rm -f /opt/tools/SoapUI/lib/javafx-*-16-linux.jar
+        local module
+        for module in base controls graphics media swing web; do
+            wget "https://repo1.maven.org/maven2/org/openjfx/javafx-${module}/17.0.2/javafx-${module}-17.0.2-linux-aarch64.jar" -O "/opt/tools/SoapUI/lib/javafx-${module}-17.0.2-linux-aarch64.jar"
+        done
     fi
     add-aliases soapui
     add-history soapui
