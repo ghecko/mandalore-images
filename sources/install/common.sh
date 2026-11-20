@@ -36,22 +36,67 @@ function gh_api() {
     # command line) so it never appears in catch_and_retry's '[MANDALORE DEBUG] $*'
     # echo, in shell history, or in process listings. The config file is created
     # with 0600 and removed immediately after the call.
-    local cfg rc
-    cfg=$(mktemp)
-    chmod 600 "$cfg"
-    {
-        echo 'silent'
-        echo 'location'
-        echo 'header = "Accept: application/vnd.github+json"'
-        echo 'header = "X-GitHub-Api-Version: 2022-11-28"'
-        if [[ -n "${GITHUB_TOKEN:-}" ]]; then
-            echo "header = \"Authorization: Bearer ${GITHUB_TOKEN}\""
+    #
+    # On HTTP errors, the status, GitHub message and rate-limit state are printed and
+    # a non-zero code is returned. When the rate limit is exhausted, waits for the
+    # reset (up to 1h) and retries once.
+    local cfg hdr body rc status remaining reset wait attempt out="" args=()
+    # Extract the caller's output file (-o / --output), the response body is written to it on success
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -o|--output) out="$2"; shift 2 ;;
+            *) args+=("$1"); shift ;;
+        esac
+    done
+    for attempt in 1 2; do
+        cfg=$(mktemp)
+        hdr=$(mktemp)
+        body=$(mktemp)
+        chmod 600 "$cfg"
+        {
+            echo 'silent'
+            echo 'show-error'
+            echo 'location'
+            echo 'header = "Accept: application/vnd.github+json"'
+            echo 'header = "X-GitHub-Api-Version: 2022-11-28"'
+            if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+                echo "header = \"Authorization: Bearer ${GITHUB_TOKEN}\""
+            fi
+        } > "$cfg"
+        curl --config "$cfg" --dump-header "$hdr" --output "$body" "${args[@]}"
+        rc=$?
+        rm -f "$cfg"
+        status=$(grep -E '^HTTP/' "$hdr" | tail -n 1 | awk '{print $2}' | tr -dc '0-9')
+        remaining=$(grep -i '^x-ratelimit-remaining:' "$hdr" | tail -n 1 | tr -dc '0-9')
+        reset=$(grep -i '^x-ratelimit-reset:' "$hdr" | tail -n 1 | tr -dc '0-9')
+        rm -f "$hdr"
+        if [[ $rc -eq 0 && -n "$status" && "$status" -lt 400 ]]; then
+            if [[ -n "$out" ]]; then
+                mv "$body" "$out"
+            else
+                cat "$body"
+                rm -f "$body"
+            fi
+            return 0
         fi
-    } > "$cfg"
-    curl --config "$cfg" "$@"
-    rc=$?
-    rm -f "$cfg"
-    return $rc
+        criticalecho-noexit "GitHub API call failed (curl rc=${rc}, HTTP ${status:-none}): $(jq -r '.message // empty' "$body" 2>/dev/null | head -c 300)" >&2
+        criticalecho-noexit "GitHub API rate limit remaining: ${remaining:-?}, token provided: $([[ -n "${GITHUB_TOKEN:-}" ]] && echo yes || echo no)" >&2
+        rm -f "$body"
+        if [[ "$status" == "401" ]]; then
+            criticalecho-noexit "The GitHub token is invalid or expired: fix or unset GITHUB_TOKEN (unauthenticated calls are limited to 60/h)." >&2
+            return 1
+        fi
+        if [[ $attempt -eq 1 && ( "$status" == "403" || "$status" == "429" ) && "$remaining" == "0" && -n "$reset" ]]; then
+            wait=$(( reset - $(date +%s) + 5 ))
+            if [[ $wait -gt 0 && $wait -le 3600 ]]; then
+                colorecho "GitHub API rate limit reached, waiting ${wait}s for the reset (set GITHUB_TOKEN to avoid this)" >&2
+                sleep "$wait"
+                continue
+            fi
+        fi
+        return 1
+    done
+    return 1
 }
 
 function gh_release_binary() {
