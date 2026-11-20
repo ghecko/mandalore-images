@@ -7,7 +7,7 @@ ___
 
 This repository hosts Dockerfiles for each Mandalore image, an installation script, and various assets needed during the installation (custom configurations, a history file, an aliases file, etc.). These files can be used to locally build the docker images, pre-built images are published on the GitHub Container Registry (`ghcr.io/ghecko/mandalore`) so that Mandalore users don't have to build their own image.
 
-More information on [the Mandalore documentation](https://github.com/ghecko/mandalore-docs).
+More information on [the Mandalore documentation](https://ghecko.github.io/mandalore-docs/).
 
 # Atomic Testing Guide
 
