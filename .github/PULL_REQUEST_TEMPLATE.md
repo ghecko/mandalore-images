@@ -1,6 +1,6 @@
 # Description
 
-> A description of your PR, what it brings or corrects. Don't forget to configure your PR to the dev branch (cf. https://mandalore.readthedocs.io/en/latest/community/contributors.html)
+> A description of your PR, what it brings or corrects. Don't forget to configure your PR to the main branch (cf. https://github.com/ghecko/mandalore-docs)
 
 # Related issues
 
