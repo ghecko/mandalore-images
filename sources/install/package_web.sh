@@ -152,7 +152,7 @@ function install_corscanner() {
 function install_droopescan() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing droopescan"
-    uv tool install git+https://github.com/droope/droopescan.git
+    uv tool install --python 3.11 git+https://github.com/droope/droopescan.git
     add-history droopescan
     add-test-command "droopescan --help"
     add-to-list "droopescan,https://github.com/droope/droopescan,Scan Drupal websites for vulnerabilities."
@@ -165,6 +165,8 @@ function install_eyewitness() {
     uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
     ./setup/setup.sh
+    # setup.sh creates its own eyewitness-venv; install the python deps in ./venv used by the alias
+    uv pip install -r setup/requirements.txt
     deactivate
     add-aliases eyewitness
     add-history eyewitness
@@ -394,18 +396,6 @@ function install_jwt_tool() {
     add-to-list "jwt,https://github.com/ticarpi/jwt_tool,a command-line tool for working with JSON Web Tokens (JWTs)"
 }
 
-function install_kadimus() {
-    colorecho "Installing kadimus"
-    # TODO : Check if deps are already installed
-    fapt libcurl4-openssl-dev libpcre3-dev libssh-dev
-    git -C /opt/tools/ clone --depth 1 https://github.com/P0cL4bs/Kadimus
-    cd /opt/tools/Kadimus || exit
-    make -j
-    add-aliases kadimus
-    add-history kadimus
-    add-test-command "kadimus --help"
-    add-to-list "kadimus,https://github.com/P0cL4bs/Kadimus,a tool for detecting and exploiting file upload vulnerabilities"
-}
 
 function install_katana() {
     # CODE-CHECK-WHITELIST=add-aliases
@@ -656,9 +646,9 @@ function install_ssrfmap() {
     colorecho "Installing SSRFmap"
     git -C /opt/tools/ clone --depth 1 https://github.com/swisskyrepo/SSRFmap
     cd /opt/tools/SSRFmap || exit
-    uv venv --python 3.11 --seed ./venv
+    uv venv --python 3.13 --seed ./venv
     source ./venv/bin/activate
-    uv pip install -r requirements.txt
+    uv pip install -r pyproject.toml
     deactivate
     add-aliases ssrfmap
     add-history ssrfmap
@@ -670,11 +660,11 @@ function install_testssl() {
     colorecho "Installing testssl"
     # TODO : Check if deps are already installed
     fapt bsdmainutils
-    git -C /opt/tools/ clone --depth 1 https://github.com/drwetter/testssl.sh.git
+    git -C /opt/tools/ clone --depth 1 https://github.com/testssl/testssl.sh.git
     add-aliases testssl
     add-history testssl
     add-test-command "testssl.sh --help"
-    add-to-list "testssl,https://github.com/drwetter/testssl.sh,a tool for testing SSL/TLS encryption on servers"
+    add-to-list "testssl,https://github.com/testssl/testssl.sh,a tool for testing SSL/TLS encryption on servers"
 }
 
 function install_timing_attack() {
@@ -854,7 +844,6 @@ function package_web() {
     safe_install web install_fuxploider              # File upload scanner
     safe_install web install_gau                     # fetches known URLs from AlienVault's Open Threat Exchange, the Wayback Machine, Common Crawl, and URLScan
     safe_install web install_git-dumper              # Dump a git repository from a website
-    # install_gitrob                # Senstive files reconnaissance in github #FIXME: Go version too old ?
     safe_install web install_gittools                # Dump a git repository from a website
     safe_install web install_gobuster                # Web fuzzer (pretty good for several extensions)
     safe_install web install_gopherus                # SSRF helper
@@ -868,7 +857,6 @@ function package_web() {
     safe_install web install_joomscan                # Joomla scanner
     safe_install web install_jsluice                 # Extract URLs, paths, secrets, and other interesting data from JavaScript source code
     safe_install web install_jwt_tool                # Toolkit for validating, forging, scanning and tampering JWTs
-    safe_install web install_kadimus                 # LFI scanner
     safe_install web install_katana                  # A next-generation crawling and spidering framework
     safe_install web install_kiterunner              # Web fuzzer (fast and pretty good for api bruteforce)
     safe_install web install_kraken                  # Kraken is a modular multi-language webshell.
@@ -886,7 +874,6 @@ function package_web() {
     safe_install web install_soapui                  # SoapUI is an open-source web service testing application for SOAP and REST
     safe_install web install_sqlmap                  # SQL injection scanner
     safe_install web install_sslscan                 # SSL/TLS scanner
-    # install_sslyze                # SSL/TLS scanner FIXME: Only AMD ?
     safe_install web install_ssrfmap                 # SSRF scanner
     safe_install web install_symfony-exploits        # symfony secret fragments exploit
     safe_install web install_testssl                 # SSL/TLS scanner

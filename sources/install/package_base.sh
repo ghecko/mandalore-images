@@ -15,7 +15,8 @@ function install_exegol-history() {
     cd /opt/tools/exegol-history || exit
     uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    uv pip install -r requirements.txt
+    # requirements.txt is incomplete (misses argcomplete): install the project itself
+    uv pip install .
     deactivate
     add-aliases exegol-history
     add-history exegol-history
@@ -57,6 +58,19 @@ function install_go() {
     add-test-command "go version"
 }
 
+function install_nim() {
+    # CODE-CHECK-WHITELIST=add-aliases,add-history
+    colorecho "Installing nim"
+    # Debian 13 no longer ships nim. Managed via asdf (prebuilt binaries) so it can be
+    # updated in the image with: asdf install nim latest && asdf set --home nim latest
+    asdf plugin add nim https://github.com/asdf-community/asdf-nim.git
+    asdf install nim latest:2
+    asdf set --home nim latest:2
+    add-test-command "nim --version"
+    add-test-command "nimble --version"
+    add-to-list "nim,https://github.com/nim-lang/Nim,Nim programming language compiler and nimble package manager (managed with asdf)."
+}
+
 function deploy_mandalore() {
     colorecho "Installing Mandalore things"
     # Moving mandalore files to /
@@ -96,12 +110,12 @@ function install_python_versions() {
 
     # Install Python versions using uv
     # This downloads standalone python builds
-    # We install 3.10, 3.11, 3.12, 3.13
-    uv python install 3.10 3.11 3.12 3.13
+    # 3.11 and 3.13 cover most tools; other versions requested with --python are fetched on demand
+    uv python install 3.11 3.13
     
-    # We can set a preference, but uv usually picks the latest or specified one.
-    # To ensure 'python' or 'python3' uses a specific version globally with uv commands, 
-    # we can use 'uv python pin'. But for system-wide usage, we rely on uv's discovery.
+    # Pin the default interpreter: without it uv picks the newest managed python, so a single
+    # `--python 3.14` install (theHarvester) silently moved every later unpinned tool to 3.14.
+    uv python pin --global 3.13
     
     add-test-command "uv python list"
     add-test-command "uv python find 3.11"
@@ -197,7 +211,10 @@ function install_rvm() {
     curl -sSL https://get.rvm.io -o /tmp/rvm.sh
     bash /tmp/rvm.sh --ruby="3.2.2" stable
     source /usr/local/rvm/scripts/rvm
-    rvm autolibs read-fail
+    # RVM's Debian requirements check still asks for libncurses5-dev, which Debian 13 dropped
+    # (now libncurses-dev). Install Ruby build deps ourselves and disable autolibs checks.
+    fapt autoconf bison libncurses-dev libyaml-dev libssl-dev libreadline-dev zlib1g-dev libffi-dev libgdbm-dev libdb-dev
+    rvm autolibs disable
     rvm rvmrc warning ignore allGemfiles
     rvm use 3.2.2@default
     rvm install ruby-3.3.8 # Needed by metasploits
@@ -278,7 +295,7 @@ function install_pyftpdlib() {
     colorecho "Installing pyftpdlib"
     uv tool install pyftpdlib
     add-aliases pyftpdlib
-    add-test-command "python3 -c 'import pyftpdlib'"
+    add-test-command "$(command uv tool dir)/pyftpdlib/bin/python -c 'import pyftpdlib'"
     add-to-list "pyftpdlib,https://github.com/giampaolo/pyftpdlib/,Extremely fast and scalable Python FTP server library"
 }
 
@@ -407,55 +424,6 @@ function install_java11() {
     add-test-command "java11 --version"
 }
 
-function install_java21() {
-    # CODE-CHECK-WHITELIST=add-history,add-aliases,add-to-list
-    colorecho "Installing java 21"
-    if [[ $(uname -m) = 'x86_64' ]]
-    then
-        wget -O /tmp/openjdk21-jdk.tar.gz "https://download.java.net/java/GA/jdk21.0.2/f2283984656d49d69e91c558476027ac/13/GPL/openjdk-21.0.2_linux-x64_bin.tar.gz"
-
-    elif [[ $(uname -m) = 'aarch64' ]]
-    then
-        wget -O /tmp/openjdk21-jdk.tar.gz "https://download.java.net/java/GA/jdk21.0.2/f2283984656d49d69e91c558476027ac/13/GPL/openjdk-21.0.2_linux-aarch64_bin.tar.gz"
-    else
-        criticalecho-noexit "This installation function doesn't support architecture $(uname -m)" && return
-    fi
-    tar -xzf /tmp/openjdk21-jdk.tar.gz --directory /tmp
-    mkdir -p "/usr/lib/jvm"
-    mv /tmp/jdk-21* /usr/lib/jvm/java-21-openjdk
-    for x in /usr/lib/jvm/java-21-openjdk/bin/*; do
-      BIN_NAME=$(echo "$x" | rev | cut -d '/' -f1 | rev)
-      update-alternatives --install "/usr/bin/$BIN_NAME" "$BIN_NAME" "$x" 21;
-    done
-    ln -s -v /usr/lib/jvm/java-21-openjdk/bin/java /usr/bin/java21
-    add-test-command "/usr/lib/jvm/java-21-openjdk/bin/java --version"
-    add-test-command "java21 --version"
-}
-
-function install_java24() {
-    # CODE-CHECK-WHITELIST=add-history,add-aliases,add-to-list
-    colorecho "Installing java 24"
-    if [[ $(uname -m) = 'x86_64' ]]
-    then
-        wget -O /tmp/openjdk24-jdk.tar.gz "https://download.java.net/java/GA/jdk24/1f9ff9062db4449d8ca828c504ffae90/36/GPL/openjdk-24_linux-x64_bin.tar.gz"
-
-    elif [[ $(uname -m) = 'aarch64' ]]
-    then
-        wget -O /tmp/openjdk24-jdk.tar.gz "https://download.java.net/java/GA/jdk24/1f9ff9062db4449d8ca828c504ffae90/36/GPL/openjdk-24_linux-aarch64_bin.tar.gz"
-    else
-        criticalecho-noexit "This installation function doesn't support architecture $(uname -m)" && return
-    fi
-    tar -xzf /tmp/openjdk24-jdk.tar.gz --directory /tmp
-    mkdir -p "/usr/lib/jvm"
-    mv /tmp/jdk-24* /usr/lib/jvm/java-24-openjdk
-    for x in /usr/lib/jvm/java-24-openjdk/bin/*; do
-      BIN_NAME=$(echo "$x" | rev | cut -d '/' -f1 | rev)
-      update-alternatives --install "/usr/bin/$BIN_NAME" "$BIN_NAME" "$x" 24;
-    done
-    ln -s -v /usr/lib/jvm/java-24-openjdk/bin/java /usr/bin/java24
-    add-test-command "/usr/lib/jvm/java-24-openjdk/bin/java --version"
-    add-test-command "java24 --version"
-}
 
 function add_debian_repository_components() {
     # add non-free non-free-firmware contrib repository
@@ -500,13 +468,6 @@ function install_asdf() {
     add-to-list "asdf,https://github.com/asdf-vm/asdf,Extendable version manager with support for ruby python go etc"
 }
 
-function install_pipx() {
-    # CODE-CHECK-WHITELIST=add-aliases,add-history,add-to-list
-    colorecho "Installing pipx"
-    pip3 install pipx --break-system-packages
-    pipx ensurepath
-    add-test-command "pipx --version"
-}
 
 # Package dedicated to the basic things the env needs
 function package_base() {
@@ -522,18 +483,15 @@ function package_base() {
     deploy_mandalore
     # Re-init failure tracking because deploy_mandalore wipes /.mandalore
     init_failure_tracking
-    fapt software-properties-common
     add_debian_repository_components
-    cp -v /root/sources/assets/apt/sources.list.d/* /etc/apt/sources.list.d/
-    cp -v /root/sources/assets/apt/preferences.d/* /etc/apt/preferences.d/
     apt-get update
     colorecho "Starting main programs install"
     fapt man git lsb-release pciutils pkg-config zip unzip kmod gnupg2 wget \
     libffi-dev zsh asciinema npm gem automake autoconf make cmake time gcc g++ file lsof \
-    less x11-apps net-tools vim nano jq iputils-ping iproute2 tidy mlocate libtool \
+    less x11-apps net-tools vim nano jq iputils-ping iproute2 tidy plocate libtool \
     dos2unix ftp sshpass telnet nfs-common ncat netcat-traditional socat rdate putty \
-    screen p7zip-full p7zip-rar unrar xz-utils xsltproc parallel tree ruby ruby-dev ruby-full bundler \
-    nim perl libwww-perl openjdk-17-jdk openvpn openresolv \
+    screen p7zip-full 7zip-rar unrar xz-utils xsltproc parallel tree ruby ruby-dev ruby-full bundler \
+    perl libwww-perl openjdk-21-jdk openvpn openresolv \
     logrotate tmux bat libxml2-utils virtualenv chromium libsasl2-dev \
     libldap2-dev libssl-dev isc-dhcp-client sqlite3 dnsutils samba ssh snmp faketime php \
     python3 python3-dev grc emacs-nox xsel xxd libnss3-tools htop
@@ -556,7 +514,6 @@ function package_base() {
     # the order matters (if 2 is before 3, `python` will point to Python 2)
     # setup Python environment using uv
     install_python_versions
-    # install_pipx is removed in favor of `uv tool install`
 
     # change default shell
     chsh -s /bin/zsh
@@ -578,15 +535,17 @@ function package_base() {
     install_rust_cargo
     install_rvm                                         # Ruby Version Manager
 
-    # java11 install, java21 install, and java17 as default
+    # java11 install (manual), java21 from Debian (openjdk-21-jdk, installed above) as default.
+    # Debian 13 no longer ships openjdk-17; java21 replaces it as the default JVM.
     install_java11
-    install_java21
-    #install_java24  # Ready to be install when needed as replacement of java21 ?
-    ln -s -v /usr/lib/jvm/java-17-openjdk-* /usr/lib/jvm/java-17-openjdk    # To avoid determining the correct path based on the architecture
-    ln -s -v /usr/lib/jvm/java-17-openjdk/bin/java /usr/bin/java17          # Add java17 bin
-    update-alternatives --set java /usr/lib/jvm/java-17-openjdk-*/bin/java  # Set the default openjdk version to 17
+    ln -s -v /usr/lib/jvm/java-21-openjdk-* /usr/lib/jvm/java-21-openjdk    # To avoid determining the correct path based on the architecture
+    ln -s -v /usr/lib/jvm/java-21-openjdk/bin/java /usr/bin/java21          # Add java21 bin
+    update-alternatives --set java /usr/lib/jvm/java-21-openjdk-*/bin/java  # Set the default openjdk version to 21
+    add-test-command "/usr/lib/jvm/java-21-openjdk/bin/java --version"
+    add-test-command "java21 --version"
 
     install_go                                          # Golang language
+    install_nim                                         # Nim language (asdf)
     install_ohmyzsh                                     # Awesome shell
     install_fzf                                         # Fuzzy finder
     add-history curl
@@ -641,7 +600,6 @@ function package_base() {
     # Global python dependencies
     uv pip install --system --break-system-packages -r /root/sources/assets/python/requirements.txt
 
-    safe_install base install_pipx
 
     install_exegol-history
 

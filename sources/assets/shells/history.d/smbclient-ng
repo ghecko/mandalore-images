@@ -1,2 +1,1 @@
-smbclientng -d "$DOMAIN" -u "$USER" -p "$PASSWORD" --host "$DC_IP"
-smbng -d "$DOMAIN" -u "$USER" -p "$PASSWORD" --host "$DC_IP"
+smbclient-ng --domain "$DOMAIN" --user "$USER" --password "$PASSWORD" --host "$DC_IP"

@@ -81,6 +81,9 @@ function install_proxmark3() {
     make clean
     make -j all PLATFORM=PM3OTHER
     make install PLATFORM=PM3OTHER clean
+    # `make install` sets cap_net_raw,cap_net_admin+eip (BLE); CAP_NET_ADMIN is not in Docker's default
+    # bounding set, so exec fails with EPERM. We run as root, the file caps are not needed.
+    setcap -r /usr/local/bin/proxmark3
     add-aliases proxmark3
     add-history proxmark3
     add-test-command "proxmark3 --version"

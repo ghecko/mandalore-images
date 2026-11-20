@@ -1,0 +1,4 @@
+delegations audit --domain "$DOMAIN" --username "$USER" --password "$PASSWORD" --dc-ip "$DC_IP"
+delegations audit --ignore-legitimate --domain "$DOMAIN" --username "$USER" --password "$PASSWORD" --dc-ip "$DC_IP"
+delegations find rbcd --distinguished-name "CN=TARGET,CN=Computers,DC=domain,DC=local" --domain "$DOMAIN" --username "$USER" --password "$PASSWORD" --dc-ip "$DC_IP"
+delegations add rbcd --distinguished-name "CN=TARGET,CN=Computers,DC=domain,DC=local" --allowed-to-act-on-behalf-of-another-identity "ATTACKER$" --domain "$DOMAIN" --username "$USER" --password "$PASSWORD" --dc-ip "$DC_IP"

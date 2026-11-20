@@ -54,6 +54,29 @@ function gh_api() {
     return $rc
 }
 
+function gh_release_binary() {
+    # Download the latest release asset of a GitHub repo matching the current
+    # architecture and install it as an executable.
+    # Usage: gh_release_binary <owner/repo> <asset-name-prefix> <destination>
+    #   The asset must be named "<asset-name-prefix>-linux-<amd64|arm64>".
+    local repo="$1" prefix="$2" dest="$3" arch tmp url
+    case "$(uname -m)" in
+        x86_64)  arch="amd64" ;;
+        aarch64) arch="arm64" ;;
+        *) criticalecho-noexit "gh_release_binary: unsupported architecture $(uname -m)"; return 1 ;;
+    esac
+    tmp=$(mktemp)
+    gh_api "https://api.github.com/repos/${repo}/releases/latest" -o "$tmp"
+    url=$(jq --raw-output --arg n "${prefix}-linux-${arch}" '.assets[] | select(.name == $n) | .browser_download_url' "$tmp")
+    rm -f "$tmp"
+    if [[ -z "$url" ]]; then
+        criticalecho-noexit "gh_release_binary: no asset ${prefix}-linux-${arch} in ${repo} latest release"
+        return 1
+    fi
+    curl -sSL --fail -o "$dest" "$url"
+    chmod +x "$dest"
+}
+
 ### Support functions
 
 function add-to-list() {

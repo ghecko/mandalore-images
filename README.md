@@ -52,23 +52,28 @@ Treat the token as a secret — never commit it.
 
 ## Using the token
 
-The token is wired through every dockerfile as an `ARG GITHUB_TOKEN` and exposed at build-time via `ENV`. The `gh_api()` helper in `sources/install/common.sh` reads `GITHUB_TOKEN` and injects an `Authorization: Bearer` header when set — if the variable is empty, calls fall back to unauthenticated and the build still works (it just risks 403s under load).
+The token is passed to the build as a [BuildKit secret](https://docs.docker.com/build/building/secrets/) (`id=github_token`) and only mounted as the `GITHUB_TOKEN` env var during each `RUN ./entrypoint.sh ...` step: it is **never stored in the image** (layers, config or `docker inspect`) and does not affect the build cache. The `gh_api()` helper in `sources/install/common.sh` reads `GITHUB_TOKEN` and injects an `Authorization: Bearer` header when set — if the secret is not provided, calls fall back to unauthenticated and the build still works (it just risks 403s under load).
 
-Pass the token at build time:
+With the `Makefile` (reads `GITHUB_TOKEN`, falls back to `GH_TOKEN`):
+
+```bash
+export GH_TOKEN=ghp_...
+make base && make full
+```
+
+Or directly with docker:
 
 ```bash
 # Linux / macOS
-export GH_TOKEN=ghp_...
-docker build --build-arg GITHUB_TOKEN="$GH_TOKEN" -f base.dockerfile -t lksec/mandalore-base .
+export GITHUB_TOKEN=ghp_...
+docker buildx build --secret id=github_token,env=GITHUB_TOKEN -f base.dockerfile -t lksec/mandalore-base .
 ```
 
 ```powershell
 # Windows PowerShell
-$env:GH_TOKEN = "ghp_..."
-docker build --build-arg GITHUB_TOKEN=$env:GH_TOKEN -f base.dockerfile -t lksec/mandalore-base .
+$env:GITHUB_TOKEN = "ghp_..."
+docker buildx build --secret id=github_token,env=GITHUB_TOKEN -f base.dockerfile -t lksec/mandalore-base .
 ```
-
-The `Makefile` targets should be invoked with the same `--build-arg`; if you use them frequently, export `GH_TOKEN` in your shell profile or pass it via your CI's secret manager.
 
 # Build Error Handling
 

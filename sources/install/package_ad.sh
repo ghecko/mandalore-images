@@ -38,14 +38,6 @@ function install_abuseACL() {
     add-to-list "abuseACL,https://github.com/AetherBlack/abuseACL,A python script to automatically list vulnerable Windows ACEs/ACLs."
 }
 
-function install_aclpwn() {
-    # CODE-CHECK-WHITELIST=add-aliases
-    colorecho "Installing aclpwn with pip"
-    uv tool install git+https://github.com/aas-n/aclpwn.py
-    add-history aclpwn
-    add-test-command "aclpwn -h"
-    add-to-list "aclpwn,https://github.com/aas-n/aclpwn.py,Tool for testing the security of Active Directory access controls."
-}
 
 function install_adidnsdump() {
     # CODE-CHECK-WHITELIST=add-aliases
@@ -122,7 +114,7 @@ function install_bloodhound-ce() {
     fapt postgresql postgresql-client
 
     # only expose postgresql on localhost
-    sed -i 's/#listen_addresse/listen_addresse/' /etc/postgresql/15/main/postgresql.conf
+    sed -i 's/#listen_addresse/listen_addresse/' /etc/postgresql/*/main/postgresql.conf
     service postgresql start
 
     # avoid permissions issues when impersonating postgres
@@ -155,11 +147,6 @@ function install_bloodhound-ce() {
     # Build the API
     # 1.26.1 is installed by package_base.sh; 1.24.4 was never installed.
     asdf set golang 1.26.1
-    # Workaround for a BloodHound-CE migration SQL issue, see Exegol-images PR #667.
-    local temp_fix_limit="2026-09-01"
-    if check_temp_fix_expiry "$temp_fix_limit"; then
-        sed -i 's/\s*STORAGE MAIN//' ./cmd/api/src/database/migration/migrations/v8.5.0.sql
-    fi
     go build -C cmd/api/src -o ${bloodhoundce_path}/bloodhound -ldflags "-X 'github.com/specterops/bloodhound/cmd/api/src/version.majorVersion=8' -X 'github.com/specterops/bloodhound/cmd/api/src/version.minorVersion=0' -X 'github.com/specterops/bloodhound/cmd/api/src/version.patchVersion=1'" github.com/specterops/bloodhound/cmd/api/src/cmd/bhapi
 
     # Force remove go and yarn cache that are not stored in standard locations
@@ -357,20 +344,6 @@ function install_dploot() {
 }
 
 # Linux support WIP: https://github.com/MWR-CyberSec/PXEThief/pull/11
-function install_PXEThief() {
-    # CODE-CHECK-WHITELIST=
-    colorecho "Installing PXEThief"
-    git -C /opt/tools/ clone --depth 1 https://github.com/MWR-CyberSec/PXEThief
-    cd /opt/tools/PXEThief || exit
-    uv venv --python 3.11 --seed ./venv
-    source ./venv/bin/activate
-    uv pip install -r requirements.txt
-    deactivate
-    add-aliases PXEThief
-    add-history PXEThief
-    add-test-command "PXEThief --help"
-    add-to-list "PXEThief,https://github.com/MWR-CyberSec/PXEThief,PXEThief is a toolset designed to exploit vulnerabilities in Microsoft Endpoint Configuration Manager's OS Deployment enabling credential theft from network and task sequence accounts."
-}
 
 function install_enum4linux-ng() {
     # CODE-CHECK-WHITELIST=add-aliases
@@ -571,7 +544,7 @@ function install_krbrelayx() {
     cd /opt/tools/krbrelayx || exit
     uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    uv pip install dnspython ldap3 impacket dsinternals
+    uv pip install dnspython ldap3 impacket dsinternals ldap3-ad-auth
     deactivate
     cp -v /root/sources/assets/grc/conf.krbrelayx /usr/share/grc/conf.krbrelayx
     add-aliases krbrelayx
@@ -601,7 +574,7 @@ function install_ldaprelayscan() {
     uv pip install -r requirements.txt
     # without following fix, tool raises "oscrypto.errors.LibraryNotFoundError: Error detecting the version of libcrypto"
     # see https://github.com/wbond/oscrypto/issues/78 and https://github.com/wbond/oscrypto/issues/75
-    local temp_fix_limit="2026-09-01"
+    local temp_fix_limit="2027-04-01"
     if check_temp_fix_expiry "$temp_fix_limit"; then
       uv pip install --reinstall oscrypto@git+https://github.com/wbond/oscrypto.git
     fi
@@ -627,17 +600,22 @@ function install_ldapsearch-ad() {
 }
 
 function install_LDAPWordlistHarvester() {
+    # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing LDAPWordlistHarvester"
-    git -C /opt/tools/ clone --depth 1 https://github.com/p0dalirius/pyLDAPWordlistHarvester
-    cd /opt/tools/pyLDAPWordlistHarvester || exit
-    uv venv --python 3.11 --seed ./venv
-    source ./venv/bin/activate
-    uv pip install -r requirements.txt
-    deactivate
-    add-aliases LDAPWordlistHarvester
+    # Go rewrite (replaces the python p0dalirius/pyLDAPWordlistHarvester), prebuilt release binary.
+    gh_release_binary TheManticoreProject/ldapwordlistharvester LDAPWordlistHarvester /opt/tools/bin/LDAPWordlistHarvester
     add-history LDAPWordlistHarvester
-    add-test-command "LDAPWordlistHarvester.py --help"
-    add-to-list "LDAPWordlistHarvester,https://github.com/p0dalirius/pyLDAPWordlistHarvester,Generate a wordlist from the information present in LDAP in order to crack passwords of domain accounts"
+    add-test-command "LDAPWordlistHarvester --help"
+    add-to-list "LDAPWordlistHarvester,https://github.com/TheManticoreProject/ldapwordlistharvester,Generate a wordlist from the information present in LDAP in order to crack passwords of domain accounts (Go rewrite)."
+}
+
+function install_delegations() {
+    # CODE-CHECK-WHITELIST=add-aliases
+    colorecho "Installing delegations"
+    gh_release_binary TheManticoreProject/delegations Delegations /opt/tools/bin/delegations
+    add-history delegations
+    add-test-command "delegations --help"
+    add-to-list "delegations,https://github.com/TheManticoreProject/delegations,Audit find add and remove all types of Kerberos delegations (unconstrained constrained and RBCD) in Active Directory."
 }
 
 function install_ldeep() {
@@ -709,7 +687,7 @@ function install_mitm6_pip() {
 function install_msprobe() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing msprobe"
-    uv tool install --python 3.8 git+https://github.com/puzzlepeaches/msprobe
+    uv tool install --python 3.8 git+https://github.com/puzzlepeaches/msprobe --with 'setuptools<81'
     add-history msprobe
     add-test-command "msprobe --help"
     add-to-list "msprobe,https://github.com/puzzlepeaches/msprobe,msprobe is a tool to identify Microsoft Windows hosts and servers that are running certain services."
@@ -725,10 +703,11 @@ function install_neo4j() {
     #echo 'deb https://debian.neo4j.com stable latest' | tee /etc/apt/sources.list.d/neo4j.list
     echo 'deb https://debian.neo4j.com stable 4.4' | tee /etc/apt/sources.list.d/neo4j.list
     apt-get update
-    fapt gnupg libgtk2.0-bin libcanberra-gtk-module libx11-xcb1 libva-glx2 libgl1-mesa-glx libgl1-mesa-dri libgconf-2-4 libasound2 libxss1 neo4j
+    fapt gnupg libgtk2.0-bin libcanberra-gtk3-module libx11-xcb1 libva-glx2 libgl1 libglx-mesa0 libgl1-mesa-dri libasound2t64 libxss1 neo4j
     # TODO: when temporary fix is not needed anymore add --> neo4j-admin dbms set-initial-password mandalore4thewin
     # TODO: when temporary fix is not needed anymore remove following line
-    neo4j-admin set-initial-password mandalore4thewin
+    # neo4j 4.4 needs Java 11 (UseBiasedLocking was removed in Java 18; default java is 21)
+    JAVA_HOME=/usr/lib/jvm/java-11-openjdk neo4j-admin set-initial-password mandalore4thewin
     mkdir -p /usr/share/neo4j/logs/
     touch /usr/share/neo4j/logs/neo4j.log
     add-aliases neo4j
@@ -757,7 +736,7 @@ function install_noPac() {
     cd /opt/tools/noPac || exit
     uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    uv pip install -r requirements.txt
+    uv pip install -r requirements.txt 'setuptools<81'
     deactivate
     add-aliases noPac
     add-history noPac
@@ -815,7 +794,7 @@ function install_pcredz() {
     cd /opt/tools/PCredz || exit
     uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    uv pip install Cython python-libpcap
+    uv pip install Cython python-libpcap pcapy-ng
     deactivate
     add-aliases pcredz
     add-history pcredz
@@ -853,7 +832,7 @@ function install_pkinittools() {
     uv pip install -r requirements.txt
     # without following fix, tool raises "oscrypto.errors.LibraryNotFoundError: Error detecting the version of libcrypto"
     # see https://github.com/wbond/oscrypto/issues/78 and https://github.com/wbond/oscrypto/issues/75
-    local temp_fix_limit="2026-09-01"
+    local temp_fix_limit="2027-04-01"
     if check_temp_fix_expiry "$temp_fix_limit"; then
       uv pip install --reinstall oscrypto@git+https://github.com/wbond/oscrypto.git
     fi
@@ -1048,7 +1027,7 @@ function install_pywsus() {
     # https://github.com/GoSecure/pywsus/pull/12
     echo -e "beautifulsoup4==4.9.1\nlxml==4.9.1\nsoupsieve==2.0.1" > requirements.txt
     source ./venv/bin/activate
-    uv pip install -r requirements.txt
+    uv pip install -r requirements.txt rich
     deactivate
     add-aliases pywsus
     add-history pywsus
@@ -1079,7 +1058,7 @@ function install_responder() {
     source ./venv/bin/activate
     uv pip install -r requirements.txt
     # following requirements needed by MultiRelay.py
-    uv pip install pycryptodomex six
+    uv pip install pycryptodomex six 'setuptools<81'
     deactivate
     sed -i 's/ Random/ 1122334455667788/g' /opt/tools/Responder/Responder.conf
     sed -i 's/files\/AccessDenied.html/\/opt\/tools\/Responder\/files\/AccessDenied.html/g' /opt/tools/Responder/Responder.conf
@@ -1191,14 +1170,6 @@ function install_sccmwtf() {
     add-to-list "sccmwtf,https://github.com/xpn/sccmwtf,This code is designed for exploring SCCM in a lab."
 }
 
-function install_scrtdnsdump() {
-    # CODE-CHECK-WHITELIST=add-aliases
-    colorecho "Installing scrtdnsdump"
-    uv tool install git+https://github.com/scrt/scrtdnsdump
-    add-history scrtdnsdump
-    add-test-command "scrtdnsdump --help"
-    add-to-list "scrtdnsdump,https://github.com/scrt/scrtdnsdump,Enumeration and exporting of all DNS records in the zone for recon purposes of internal networks"
-}
 
 function install_shadowcoerce() {
     colorecho "Installing ShadowCoerce PoC"
@@ -1217,7 +1188,7 @@ function install_shadowcoerce() {
 function install_smartbrute() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing smartbrute"
-    uv tool install git+https://github.com/ShutdownRepo/smartbrute
+    uv tool install --python 3.11 git+https://github.com/ShutdownRepo/smartbrute
     add-history smartbrute
     add-test-command "smartbrute --help"
     add-to-list "smartbrute,https://github.com/ShutdownRepo/SmartBrute,The smart password spraying and bruteforcing tool for Active Directory Domain Services."
@@ -1226,10 +1197,19 @@ function install_smartbrute() {
 function install_smbclientng() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing smbclient-ng"
-    uv tool install git+https://github.com/p0dalirius/smbclient-ng
+    # Go rewrite (replaces the python p0dalirius/smbclient-ng). Built from source because
+    # tagged releases carry a `replace` directive in go.mod, which breaks `go install ...@latest`.
+    # Requires Go >= 1.24, whereas the image's default go is 1.22.2: pin 1.26.1 (from package_base.sh).
+    git -C /tmp clone --depth 1 https://github.com/TheManticoreProject/smbclientng
+    (
+      cd /tmp/smbclientng || exit
+      asdf set golang 1.26.1
+      go build -o /opt/tools/bin/smbclient-ng .
+    )
+    rm -rf /tmp/smbclientng
     add-history smbclient-ng
-    add-test-command "smbclientng --help"
-    add-to-list "smbclient-ng,https://github.com/p0dalirius/smbclient-ng,smbclient-ng is a fast and user friendly way to interact with SMB shares."
+    add-test-command "smbclient-ng --help"
+    add-to-list "smbclient-ng,https://github.com/TheManticoreProject/smbclientng,A fast, cross-platform and user friendly way to interact with SMB shares (Go rewrite)."
 }
 
 function install_smtp-user-enum() {
@@ -1353,10 +1333,7 @@ function package_ad() {
     local end_time
     start_time=$(date +%s)
     safe_install ad install_ad_apt_tools
-    # install_mitm6_sources         # Install mitm6 from sources
-    # install_scrtdnsdump          # This tool is a fork of adidnsdump (https://github.com/dirkjanm/adidnsdump). We are currently waiting to see if a PR will be made.
     safe_install ad install_abuseACL
-    safe_install ad install_aclpwn                  # ACL exploiter
     safe_install ad install_adidnsdump              # enumerate DNS records in Domain or Forest DNS zones
     safe_install ad install_adminer
     safe_install ad install_amber                   # AV evasion
@@ -1371,6 +1348,7 @@ function package_ad() {
     safe_install ad install_conpass                # Python tool for continuous password spraying taking into account the password policy.
     safe_install ad install_crackhound
     safe_install ad install_darkarmour              # Windows AV evasion
+    safe_install ad install_delegations             # Audit/find/add/remove Kerberos delegations (unconstrained, constrained, RBCD)
     safe_install ad install_donpapi
     safe_install ad install_dploot                 # Python rewrite of SharpDPAPI written un C#.
     safe_install ad install_enum4linux-ng           # Hosts enumeration
@@ -1417,7 +1395,6 @@ function package_ad() {
     safe_install ad install_pre2k
     safe_install ad install_pretender
     safe_install ad install_privexchange            # Exchange exploiter
-    # install_PXEThief              # Linux support WIP
     safe_install ad install_pyfinduncommonshares
     safe_install ad install_pygpoabuse
     safe_install ad install_pylaps

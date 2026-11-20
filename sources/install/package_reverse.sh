@@ -37,8 +37,7 @@ function install_pwntools() {
     uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
     uv pip install .
-    add-test-command "python -c 'import pwn'"
-    add-test-command "python3 -c 'import pwn'"
+    add-test-command "/opt/tools/pwntools/venv/bin/python3 -c 'import pwn'"
     add-to-list "pwntools,https://github.com/Gallopsled/pwntools,a CTF framework and exploit development library"
 }
 
@@ -62,7 +61,8 @@ function install_angr() {
     cd /opt/tools/angr || exit
     uv venv --python 3.11 --seed ./venv
     source ./venv/bin/activate
-    uv pip install angr
+    # angr 9.2.213 breaks with bitstring 5 and pycparser >= 3.2
+    uv pip install angr 'bitstring<5' 'pycparser<3.2'
     deactivate
     add-aliases angr
     add-test-command "angr -c 'import angr'"
@@ -108,23 +108,6 @@ function install_ghidra() {
     add-to-list "ghidra,https://github.com/NationalSecurityAgency/ghidra,Software reverse engineering suite of tools."
 }
 
-function install_ida() {
-    # CODE-CHECK-WHITELIST=add-test-command
-    colorecho "Installing IDA"
-    if [[ $(uname -m) = 'x86_64' ]]
-    then
-        wget "https://out7.hex-rays.com/files/idafree84_linux.run" -O /tmp/idafree_linux.run
-        chmod +x /tmp/idafree_linux.run # This is the setup wizard
-        /tmp/idafree_linux.run --mode unattended --prefix /opt/tools/idafree
-        rm /tmp/idafree_linux.run
-    else
-        criticalecho-noexit "This installation function doesn't support architecture $(uname -m), IDA Free only supports x86/x64" && return
-    fi
-    add-aliases ida
-    add-history ida
-    # TODO add-test-command GUI app
-    add-to-list "ida,https://www.hex-rays.com/products/ida/,Interactive disassembler for software analysis."
-}
 
 function install_jd-gui() {
     # CODE-CHECK-WHITELIST=add-test-command
@@ -163,7 +146,6 @@ function package_reverse() {
     safe_install reverse install_checksec-py             # Check security on binaries
     safe_install reverse install_radare2                 # Awesome debugger
     safe_install reverse install_ghidra
-    safe_install reverse install_ida
     safe_install reverse install_jd-gui                  # Java decompiler
     safe_install reverse install_pwninit                 # Tool for automating starting binary exploit
     print_failure_summary

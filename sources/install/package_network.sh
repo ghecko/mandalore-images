@@ -7,8 +7,10 @@ function install_network_apt_tools() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing network apt tools"
     export DEBIAN_FRONTEND=noninteractive
-    fapt wireshark tshark hping3 masscan netdiscover tcpdump iptables traceroute dns2tcp freerdp2-x11 \
-    rdesktop xtightvncviewer hydra mariadb-client redis-tools mitmproxy
+    fapt wireshark tshark hping3 masscan netdiscover tcpdump iptables traceroute dns2tcp freerdp3-x11 \
+    rdesktop xtightvncviewer hydra mariadb-client redis-tools
+    # mitmproxy was removed from Debian 13
+    uv tool install mitmproxy
 
     add-history wireshark
     add-history tshark
@@ -20,7 +22,7 @@ function install_network_apt_tools() {
     add-history traceroute
     add-history rdesktop
     add-history hydra
-    add-history xfreerdp
+    add-history xfreerdp3
     add-history mitmproxy
 
     add-test-command "wireshark --help"                             # Wireshark packet sniffer
@@ -32,13 +34,13 @@ function install_network_apt_tools() {
     add-test-command "iptables --version"                           # iptables for the win
     add-test-command "traceroute --help"                            # ping ping
     add-test-command "dns2tcpc|& grep 'Usage : dns2tcpc'"           # TCP tunnel over DNS
-    add-test-command "which xfreerdp"
+    add-test-command "xfreerdp3 --version"
     add-test-command "rdesktop|& grep 'Usage: rdesktop'"
     add-test-command "which xtightvncviewer"
     add-test-command "hydra -h |& grep 'more command line options'" # Login scanner
     add-test-command "mariadb --version"                            # Mariadb client
     add-test-command "redis-cli --version"                          # Redis protocol
-    add-test-command "mitmproxy --version"                          # MITMProxy
+    add-test-command "mitmproxy --version"                          # MITMProxy (uv tool, see below)
     
     add-to-list "wireshark,https://github.com/wireshark/wireshark,Wireshark is a network protocol analyzer that lets you see what’s happening on your network at a microscopic level."
     add-to-list "tshark,https://github.com/wireshark/wireshark,TShark is a terminal version of Wireshark."
@@ -49,7 +51,7 @@ function install_network_apt_tools() {
     add-to-list "iptables,https://linux.die.net/man/8/iptables,Userspace command line tool for configuring kernel firewall"
     add-to-list "traceroute,https://github.com/iputils/iputils,Traceroute is a command which can show you the path a packet of information takes from your computer to one you specify."
     add-to-list "dns2tcp,https://github.com/alex-sector/dns2tcp,dns2tcp is a tool for relaying TCP connections over DNS."
-    add-to-list "freerdp2-x11,https://github.com/FreeRDP/FreeRDP,FreeRDP is a free implementation of the Remote Desktop Protocol (RDP) released under the Apache license."
+    add-to-list "freerdp3-x11,https://github.com/FreeRDP/FreeRDP,FreeRDP is a free implementation of the Remote Desktop Protocol (RDP) released under the Apache license."
     add-to-list "rdesktop,https://github.com/rdesktop/rdesktop,rdesktop is a client for Remote Desktop Protocol (RDP) used in a number of Microsoft products including Windows NT Terminal Server / Windows 2000 Server / Windows XP and Windows 2003 Server."
     add-to-list "xtightvncviewer,https://www.commandlinux.com/man-page/man1/xtightvncviewer.1.html,xtightvncviewer is an open source VNC client software."
     add-to-list "hydra,https://github.com/vanhauser-thc/thc-hydra,Hydra is a parallelized login cracker which supports numerous protocols to attack."
@@ -134,7 +136,14 @@ function install_autorecon() {
     ln -sv /opt/tools/oscanner/debian/helper-script/oscanner /usr/bin/oscanner
     git -C /opt/tools clone --depth 1 https://gitlab.com/kalilinux/packages/tnscmd10g.git
     ln -sv /opt/tools/tnscmd10g/tnscmd10g /usr/bin/tnscmd10g
-    fapt dnsrecon wkhtmltopdf
+    fapt dnsrecon
+    # wkhtmltopdf/wkhtmltoimage (http screenshots) was removed from Debian 13 (upstream archived).
+    # Use the last upstream build (bookworm package, installs and runs fine on trixie).
+    local wkhtmltox_arch
+    wkhtmltox_arch=$(dpkg --print-architecture)
+    wget -O /tmp/wkhtmltox.deb "https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.bookworm_${wkhtmltox_arch}.deb"
+    apt-get install -y --no-install-recommends /tmp/wkhtmltox.deb
+    rm -f /tmp/wkhtmltox.deb
     uv tool install git+https://github.com/Tib3rius/AutoRecon
     add-history autorecon
     # test below cannot work because test runner cannot have a valid display
@@ -234,10 +243,10 @@ function install_tailscale() {
     colorecho "Installing tailscale"
 
     # Import the GPG key to the correct location
-    wget -qO /usr/share/keyrings/tailscale-archive-keyring.gpg https://pkgs.tailscale.com/stable/debian/bookworm.noarmor.gpg
+    wget -qO /usr/share/keyrings/tailscale-archive-keyring.gpg https://pkgs.tailscale.com/stable/debian/trixie.noarmor.gpg
 
     # Add the source list with correct signed-by attribute    
-    wget -qO /etc/apt/sources.list.d/tailscale.list https://pkgs.tailscale.com/stable/debian/bookworm.tailscale-keyring.list
+    wget -qO /etc/apt/sources.list.d/tailscale.list https://pkgs.tailscale.com/stable/debian/trixie.tailscale-keyring.list
 
     apt-get update
     fapt tailscale
@@ -389,7 +398,6 @@ function package_network() {
     safe_install network install_sshuttle                # Transparent proxy over SSH
     safe_install network install_eaphammer               # EAPHammer is a toolkit for performing targeted evil twin attacks against WPA2-Enterprise networks.
     safe_install network install_fierce
-    # install_odat                  # Oracle Database Attacking Tool, FIXME
     safe_install network install_dnsx                    # Fast and multi-purpose DNS toolkit
     safe_install network install_shuffledns              # Wrapper around massdns to enumerate valid subdomains
     safe_install network install_tailscale               # Zero config VPN for building secure networks

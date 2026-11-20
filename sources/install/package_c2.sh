@@ -8,7 +8,7 @@ source package_ad.sh
 function install_pwncat() {
     # CODE-CHECK-WHITELIST=add-aliases
     colorecho "Installing pwncat"
-    uv tool install pwncat-cs --with cryptography==36.0.2
+    uv tool install --python 3.11 pwncat-cs --with cryptography==36.0.2 --with 'setuptools<81'
     add-history pwncat
     add-test-command "pwncat-cs --version"
     add-to-list "pwncat,https://github.com/calebstewart/pwncat,A lightweight and versatile netcat alternative that includes various additional features."
@@ -35,12 +35,6 @@ function install_metasploit() {
     gem install rex
     gem install rex-text
 
-    # fixes 'You have already activated timeout 0.2.0, but your Gemfile requires timeout 0.4.1. Since timeout is a default gem, you can either remove your dependency on it or try updating to a newer version of bundler that supports timeout as a default gem.'
-    local temp_fix_limit="2026-09-01"
-    if check_temp_fix_expiry "$temp_fix_limit"; then
-      gem install timeout --version 0.4.1
-    fi
-
     # Cleanup duplicate stringio versions to silence 'Unresolved or ambiguous specs' warning
     gem cleanup stringio
 
@@ -53,6 +47,9 @@ function install_metasploit() {
     chown -R postgres:postgres /var/lib/postgresql/.bundle
     chmod -R o+rx /opt/tools/metasploit-framework/
     chmod 444 /opt/tools/metasploit-framework/.git/index # fatal: .git/index: index file open failed: Permission denied
+    # Rails >= 8.1 writes tmp/local_secret.txt during `msfdb init`, which runs as postgres
+    mkdir -p /opt/tools/metasploit-framework/tmp
+    chown postgres:postgres /opt/tools/metasploit-framework/tmp
     # Use the 3.3.8@metasploit-framework gemset wrapper (matches `rvm use` above).
     sudo -u postgres sh -c "git config --global --add safe.directory /opt/tools/metasploit-framework && /usr/local/rvm/gems/ruby-3.3.8@metasploit-framework/wrappers/bundle exec /opt/tools/metasploit-framework/msfdb init"
     cp -r /var/lib/postgresql/.msf4 /root
@@ -74,7 +71,7 @@ function install_metasploit() {
 function install_routersploit() {
     # CODE-CHECK-WHITELIST=add-history
     colorecho "Installing RouterSploit"
-    uv tool install routersploit --with colorama
+    uv tool install --python 3.11 routersploit --with colorama --with 'setuptools<81'
     add-aliases routersploit
     add-test-command "routersploit --help"
     add-to-list "routersploit,https://github.com/threat9/routersploit,Security audit tool for routers."
@@ -141,8 +138,6 @@ function install_sliver() {
 
 function install_empire() {
     colorecho "Installing Empire"
-    wget -O /tmp/packages-microsoft-prod.deb https://packages.microsoft.com/config/debian/12/packages-microsoft-prod.deb
-    dpkg -i /tmp/packages-microsoft-prod.deb
     fapt apt-transport-https libicu-dev xclip zip
     # Installing .NET 6.0 SDK
     wget -O /tmp/dotnet-install.sh https://dot.net/v1/dotnet-install.sh

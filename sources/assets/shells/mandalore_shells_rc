@@ -33,7 +33,7 @@ fi
 source /opt/tools/exegol-history/profile.sh
 source $HOME/.cargo/env
 
-# In case pipx ensurepath didn't work, and positioning pipx in priority
+# uv tool entrypoints (~/.local/bin) take priority
 export PATH="/root/.local/bin:$PATH"
 
 # locales
