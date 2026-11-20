@@ -40,7 +40,7 @@ base:
 		--build-arg TAG=base \
 		--secret id=github_token,env=GITHUB_TOKEN \
 		-f base.dockerfile \
-		-t lksec/mandalore-base .
+		-t ghcr.io/ghecko/mandalore-base .
 
 # Build image variant : full, web, light
 .PHONY: full web light
@@ -51,7 +51,7 @@ full web light: check_temp_fix_limits
 			--build-arg TAG=$@ \
 			--secret id=github_token,env=GITHUB_TOKEN \
 			-f $@.dockerfile \
-			-t lksec/mandalore:$@ .
+			-t ghcr.io/ghecko/mandalore:$@ .
 
 # Build all
 .PHONY: all

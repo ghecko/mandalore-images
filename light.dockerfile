@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # Author: The Mandalore Project
-FROM lksec/mandalore-base
+FROM ghcr.io/ghecko/mandalore-base
 
 ARG TAG
 ARG VERSION

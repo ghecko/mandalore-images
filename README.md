@@ -5,7 +5,7 @@ ___
 
 # Mandalore images
 
-This repository hosts Dockerfiles for each Mandalore image, an installation script, and various assets needed during the installation (custom configurations, a history file, an aliases file, etc.). These files can be used to locally build the docker images, there is however a pipeline in place to build, test and push images on DockerHub so that Mandalore users don't have to build their own image.
+This repository hosts Dockerfiles for each Mandalore image, an installation script, and various assets needed during the installation (custom configurations, a history file, an aliases file, etc.). These files can be used to locally build the docker images, pre-built images are published on the GitHub Container Registry (`ghcr.io/ghecko/mandalore`) so that Mandalore users don't have to build their own image.
 
 More information on [the Mandalore documentation](https://github.com/ghecko/mandalore-docs).
 
@@ -16,7 +16,7 @@ To test specific function changes without rebuilding the entire image:
 1. Launch a container from your current base image (using --entrypoint /bin/bash to bypass the default wrapper):
 
 ```
-docker run -it --rm -v $(pwd)/sources:/root/sources -w /root/sources/install --entrypoint /bin/bash lksec/mandalore-base:latest
+docker run -it --rm -v $(pwd)/sources:/root/sources -w /root/sources/install --entrypoint /bin/bash ghcr.io/ghecko/mandalore-base:latest
 ```
 
 2. Source the environment:
@@ -66,13 +66,13 @@ Or directly with docker:
 ```bash
 # Linux / macOS
 export GITHUB_TOKEN=ghp_...
-docker buildx build --secret id=github_token,env=GITHUB_TOKEN -f base.dockerfile -t lksec/mandalore-base .
+docker buildx build --secret id=github_token,env=GITHUB_TOKEN -f base.dockerfile -t ghcr.io/ghecko/mandalore-base .
 ```
 
 ```powershell
 # Windows PowerShell
 $env:GITHUB_TOKEN = "ghp_..."
-docker buildx build --secret id=github_token,env=GITHUB_TOKEN -f base.dockerfile -t lksec/mandalore-base .
+docker buildx build --secret id=github_token,env=GITHUB_TOKEN -f base.dockerfile -t ghcr.io/ghecko/mandalore-base .
 ```
 
 # Build Error Handling
@@ -108,10 +108,10 @@ To retrieve the **detailed per-tool logs** from the built image:
 
 ```bash
 # View the summary
-docker run --rm lksec/mandalore-full cat /.mandalore/build_failures/SUMMARY.txt
+docker run --rm ghcr.io/ghecko/mandalore:full cat /.mandalore/build_failures/SUMMARY.txt
 
 # Copy all failure logs to your host
-ID=$(docker create lksec/mandalore-full)
+ID=$(docker create ghcr.io/ghecko/mandalore:full)
 docker cp "$ID:/.mandalore/build_failures" ./build_failures
 docker rm "$ID"
 ```
