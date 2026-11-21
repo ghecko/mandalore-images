@@ -75,6 +75,27 @@ $env:GITHUB_TOKEN = "ghp_..."
 docker buildx build --secret id=github_token,env=GITHUB_TOKEN -f base.dockerfile -t ghcr.io/ghecko/mandalore-base .
 ```
 
+# Publishing a release (multi-arch)
+
+Images are built locally, one machine per architecture, then published together with `publish.sh`. The version comes from the `VERSION` passed to `make` (stored in the `org.mandalore.version` label), so bump it for every release.
+
+```bash
+echo "<token with write:packages>" | docker login ghcr.io -u <user> --password-stdin
+
+# On the amd64 machine, then on the arm64 machine (same VERSION on both)
+make full VERSION=2.1.0
+./publish.sh push full        # -> ghcr.io/ghecko/mandalore:staging-full-<arch>
+
+# Once both are pushed, from any machine
+./publish.sh assemble full    # -> ghcr.io/ghecko/mandalore:full and :full-2.1.0 (linux/amd64 + linux/arm64)
+./publish.sh status full      # what is on the registry
+```
+
+- `push` never touches the public tags: it only overwrites the `staging-<image>-<arch>` tag, which the wrapper ignores.
+- `assemble` checks that each staging tag has the right architecture, that all of them carry the same version, and refuses to re-point an existing `<image>-<version>` tag (`--force` to override).
+- Never `docker push ghcr.io/ghecko/mandalore:full` directly: it would replace the multi-arch image with a single architecture.
+- Per-arch images can't be staged in another repository: GHCR does not mount blobs across repositories, so `imagetools create` would re-upload every layer and times out on large images.
+
 # Build Error Handling
 
 The build system includes resilient error handling to avoid aborting the entire build when individual tools fail.
