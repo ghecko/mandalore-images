@@ -147,7 +147,15 @@ function install_bloodhound-ce() {
     # Build the API
     # 1.26.1 is installed by package_base.sh; 1.24.4 was never installed.
     asdf set golang 1.26.1
-    go build -C cmd/api/src -o ${bloodhoundce_path}/bloodhound -ldflags "-X 'github.com/specterops/bloodhound/cmd/api/src/version.majorVersion=8' -X 'github.com/specterops/bloodhound/cmd/api/src/version.minorVersion=0' -X 'github.com/specterops/bloodhound/cmd/api/src/version.patchVersion=1'" github.com/specterops/bloodhound/cmd/api/src/cmd/bhapi
+    # Stamp the real release version (shown in the UI and stored in the graph migration data)
+    local bh_version bh_major bh_minor bh_patch version_pkg="github.com/specterops/bloodhound/cmd/api/src/version"
+    bh_version="${latestRelease#v}"
+    IFS=. read -r bh_major bh_minor bh_patch <<< "${bh_version}"
+    if [[ ! "${bh_major}" =~ ^[0-9]+$ || ! "${bh_minor}" =~ ^[0-9]+$ || ! "${bh_patch}" =~ ^[0-9]+$ ]]; then
+        criticalecho-noexit "Unexpected BloodHound-CE release tag '${latestRelease}' (expected vX.Y.Z)."
+        return 1
+    fi
+    go build -C cmd/api/src -o ${bloodhoundce_path}/bloodhound -ldflags "-X '${version_pkg}.majorVersion=${bh_major}' -X '${version_pkg}.minorVersion=${bh_minor}' -X '${version_pkg}.patchVersion=${bh_patch}'" github.com/specterops/bloodhound/cmd/api/src/cmd/bhapi
 
     # Force remove go and yarn cache that are not stored in standard locations
     rm -rf "${bloodhoundce_path}/src/cache" "${bloodhoundce_path}/src/.yarn/cache"
@@ -229,7 +237,7 @@ function install_bloodhound-ce() {
     cp -v /root/sources/assets/bloodhound-ce/bloodhound.config.json "${bloodhoundce_path}"
 
     # the following test command probably needs to be changed. No idea how we can make sure bloodhound-ce works as intended.
-    add-test-command "${bloodhoundce_path}/bloodhound --version"
+    add-test-command "${bloodhoundce_path}/bloodhound --version | grep -q 'v${bh_version}\$'"
     add-test-command "service postgresql start && sleep 5 && PGPASSWORD=mandalore4thewin psql -U bloodhound -d bloodhound -h localhost -c '\l' && service postgresql stop"
     add-to-list "BloodHound-CE,https://github.com/SpecterOps/BloodHound,Active Directory security tool for reconnaissance and attacking AD environments (Community Edition)"
 }
